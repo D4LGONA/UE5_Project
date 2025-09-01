@@ -25,10 +25,35 @@ enum class EMapNodeState : uint8
 {
     Closed,    // 잠김/비활성
     Open,      // 해금
-    Cleared,   // 클리어
-    Hidden     // 숨김(옵션)
 };
 
+USTRUCT(BlueprintType)
+struct FMapNodeDef
+{
+    GENERATED_BODY()
+
+    // 노드 아이디
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    int32 Id = -1;
+
+    // 노드 좌표
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    FVector2D Pos = FVector2D::ZeroVector;
+
+    // 이웃 노드 Id들
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    TArray<int32> NeighborIds;
+
+    // 노드 타입
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    EMapNodeType  Type = EMapNodeType::Normal;
+
+    // 노드 상태
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    EMapNodeState State = EMapNodeState::Open;
+};
+
+// 클릭 이벤트 델리게이트
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMapNodeClicked, AMapNode*, Node);
 
 UCLASS(BlueprintType)
@@ -69,13 +94,15 @@ public:
     UFUNCTION(BlueprintCallable) void SetState(EMapNodeState NewState);
 
     // BP에서 상태 바뀔 때 후처리하고 싶으면 여기 구현
-    UFUNCTION(BlueprintImplementableEvent, Category = "Node")
-    void BP_OnStateChanged(EMapNodeState NewState);
+    /*UFUNCTION(BlueprintImplementableEvent, Category = "Node")
+    void BP_OnStateChanged(EMapNodeState NewState);*/
 
     // 클릭 콜백
     virtual void NotifyActorOnClicked(FKey ButtonPressed) override;
     // 값/배치 변경 시(에디터) 호출 → 선(Neighbors) 디버그
     virtual void OnConstruction(const FTransform& Transform) override;
+
+    FMapNodeDef Nodetype;
 
 protected:
     void EnsureMID();        // DiscMID 생성 보장

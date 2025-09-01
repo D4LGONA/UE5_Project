@@ -57,7 +57,7 @@ void AMapNode::SetState(EMapNodeState NewState)
     {
         State = NewState;
         RefreshVisuals();
-        BP_OnStateChanged(State);
+        //BP_OnStateChanged(State);
     }
 }
 
@@ -91,14 +91,7 @@ void AMapNode::RefreshVisuals()
     // 상태에 따른 밝기(알파 대신 밝기로)
     float Brightness = 1.0f;
     if (State == EMapNodeState::Closed)  Brightness = 0.6f;
-    if (State == EMapNodeState::Hidden)  Brightness = 0.25f;
 
     const FLinearColor FinalTint = Tint * Brightness;
     DiscMID->SetVectorParameterValue(TEXT("Tint"), FinalTint);
-
-    // (선택) 해금 상태면 외곽선 켜기
-    Disc->SetRenderCustomDepth(State == EMapNodeState::Open);
-    // (선택) 클리어면 더 밝게
-    const float Emissive = (State == EMapNodeState::Cleared) ? 1.5f : 1.0f;
-    DiscMID->SetScalarParameterValue(TEXT("EmissiveStrength"), Emissive);
 }

@@ -16,6 +16,7 @@ class PROJECT_API ASpine_EntityBase : public AActor
 private:
 	// 현재 위치한 노드를 지정
 	AMapNode* curNode = nullptr;
+	AMapNode* destNode = nullptr;
 
 public:	
 	// Sets default values for this actor's properties
@@ -29,4 +30,8 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	UFUNCTION(BlueprintCallable)
+	void SetDest(AMapNode* node) { destNode = node; }
+
+public:
 };

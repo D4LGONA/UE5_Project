@@ -68,41 +68,25 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly) UStaticMeshComponent* Disc;   // 원판 메쉬
 
     // 데이터
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Node") int32        NodeId = -1;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Node") FVector2D    MapPos2D = FVector2D::ZeroVector;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Node") EMapNodeType Type = EMapNodeType::Normal;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Node") EMapNodeState State = EMapNodeState::Closed;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Node") int32        MoveCost = 1;
+    UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category = "Node", meta = (ShowOnlyInnerProperties))
+    FMapNodeDef Nodetype;
+
 
     // 인접 노드 (에디터에서 드래그로 지정)
     UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category = "Node")
     TArray<TObjectPtr<AMapNode>> Neighbors;
 
-    // (선택) 기본 머티리얼 인스턴스(에셋)를 에디터에서 할당해두면 그걸 기반으로 동적 인스턴스 생성
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Node|Visual")
-    UMaterialInterface* BaseDiscMaterial = nullptr;
-
     // 동적 머티리얼
     UPROPERTY(Transient) 
     UMaterialInstanceDynamic* DiscMID = nullptr;
 
-    // 클릭 이벤트 브로드캐스트(매니저에서 바인딩)
-    UPROPERTY(BlueprintAssignable, Category = "Events")
-    FOnMapNodeClicked OnNodeClicked;
-
     // 상태 변경
     UFUNCTION(BlueprintCallable) void SetState(EMapNodeState NewState);
 
-    // BP에서 상태 바뀔 때 후처리하고 싶으면 여기 구현
-    /*UFUNCTION(BlueprintImplementableEvent, Category = "Node")
-    void BP_OnStateChanged(EMapNodeState NewState);*/
-
-    // 클릭 콜백
-    virtual void NotifyActorOnClicked(FKey ButtonPressed) override;
     // 값/배치 변경 시(에디터) 호출 → 선(Neighbors) 디버그
     virtual void OnConstruction(const FTransform& Transform) override;
 
-    FMapNodeDef Nodetype;
+
 
 protected:
     void EnsureMID();        // DiscMID 생성 보장

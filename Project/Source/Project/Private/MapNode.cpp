@@ -1,97 +1,113 @@
 #include "MapNode.h"
 #include "Components/StaticMeshComponent.h"
-#include "Engine/CollisionProfile.h"
+#include "Components/SceneComponent.h"
 #include "DrawDebugHelpers.h"
+#include "Materials/MaterialInstanceDynamic.h"
 
 AMapNode::AMapNode()
 {
-    PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = false;
 
-    Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
-    SetRootComponent(Root);
+	Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
+	SetRootComponent(Root);
 
-    Disc = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Disc"));
-    Disc->SetupAttachment(Root);
-    // 클릭 잡히게 Visibility 채널만 Block
-    Disc->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-    Disc->SetCollisionResponseToAllChannels(ECR_Ignore);
-    Disc->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
+	Disc = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Disc"));
+	Disc->SetupAttachment(Root);
 
-#if WITH_EDITORONLY_DATA
-    SetActorScale3D(FVector(0.6f));
-#endif
-
-    // 머티리얼 지정
-    static ConstructorHelpers::FObjectFinder<UMaterialInterface> NodeMat(
-        TEXT("/Game/Materials/M_NodeDisc.M_NodeDisc")); // ← 네 실제 경로로 교체
-    if (NodeMat.Succeeded() && !BaseDiscMaterial)
-    {
-        BaseDiscMaterial = NodeMat.Object;
-        if (Disc && !Disc->GetMaterial(0))
-        {
-            Disc->SetMaterial(0, BaseDiscMaterial);
-        }
-    }
+	// 선택: 에디터에서만 충돌/선택편의
+	Disc->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	Disc->SetGenerateOverlapEvents(false);
 }
 
 void AMapNode::EnsureMID()
 {
-    if (!Disc) return;
-
-    // 1) BaseDiscMaterial이 설정돼 있으면 무조건 0번 슬롯을 우리 머티로 바꿔 끼움
-    if (BaseDiscMaterial && Disc->GetMaterial(0) != BaseDiscMaterial)
-    {
-        Disc->SetMaterial(0, BaseDiscMaterial);
-    }
-    // 2) 그 위에서 동적 MID 생성
-    if (!DiscMID)
-    {
-        DiscMID = Disc->CreateAndSetMaterialInstanceDynamic(0);
-    }
+	if (!Disc) return;
+	if (!DiscMID)
+	{
+		UMaterialInterface* BaseMat = Disc->GetMaterial(0);
+		if (BaseMat)
+		{
+			DiscMID = UMaterialInstanceDynamic::Create(BaseMat, this);
+			Disc->SetMaterial(0, DiscMID);
+		}
+	}
 }
 
-
-void AMapNode::SetState(EMapNodeState NewState)
+static FLinearColor ColorOf(EMapNodeType Type)
 {
-    if (State != NewState)
-    {
-        State = NewState;
-        RefreshVisuals();
-        //BP_OnStateChanged(State);
-    }
-}
-
-void AMapNode::NotifyActorOnClicked(FKey /*ButtonPressed*/)
-{
-    OnNodeClicked.Broadcast(this);
-}
-
-void AMapNode::OnConstruction(const FTransform& Transform)
-{
-    EnsureMID();
-    RefreshVisuals();
+	switch (Type)
+	{
+	case EMapNodeType::Start:       return FLinearColor::White;
+	case EMapNodeType::Normal:      return FLinearColor(0.85f, 0.85f, 0.85f);
+	case EMapNodeType::Locked:      return FLinearColor::Red;
+	case EMapNodeType::Interaction: return FLinearColor::Yellow;
+	case EMapNodeType::Event:       return FLinearColor(1.0f, 0.6f, 0.0f); // 주황/골드
+	case EMapNodeType::Exit:        return FLinearColor::Blue;
+	default:                        return FLinearColor::Black;
+	}
 }
 
 void AMapNode::RefreshVisuals()
 {
-    EnsureMID();
-    if (!DiscMID) return;
+	EnsureMID();
 
-    // 타입별 기본 색
-    FLinearColor Tint = FLinearColor::White;
-    switch (Type)
-    {
-    case EMapNodeType::Normal:      Tint = FLinearColor(0.95f, 0.95f, 0.95f); break;
-    case EMapNodeType::Locked:      Tint = FLinearColor(1.f, 0.2f, 0.2f);     break; // 빨강
-    case EMapNodeType::Interaction: Tint = FLinearColor(1.f, 0.9f, 0.2f);     break; // 노랑
-    case EMapNodeType::Event:       Tint = FLinearColor(1.f, 0.7f, 0.2f);     break; // 주황
-    case EMapNodeType::Exit:        Tint = FLinearColor(0.2f, 0.6f, 1.f);     break; // 파랑
-    }
+	// 머티리얼 파라미터명은 프로젝트에 맞춰 변경
+	if (DiscMID)
+	{
+		const FLinearColor C = ColorOf(Nodetype.Type);
+		DiscMID->SetVectorParameterValue(FName("BaseColor"), C);
 
-    // 상태에 따른 밝기(알파 대신 밝기로)
-    float Brightness = 1.0f;
-    if (State == EMapNodeState::Closed)  Brightness = 0.6f;
+		// 잠김 표시를 따로 주고 싶다면 Emissive/Outline 계열 파라미터에 가중치 주기
+		const bool bLocked = (Nodetype.State == EMapNodeState::Closed) || (Nodetype.Type == EMapNodeType::Locked);
+		DiscMID->SetScalarParameterValue(FName("LockedIntensity"), bLocked ? 1.0f : 0.0f);
+	}
 
-    const FLinearColor FinalTint = Tint * Brightness;
-    DiscMID->SetVectorParameterValue(TEXT("Tint"), FinalTint);
+#if WITH_EDITOR
+	// 에디터 뷰에서 타입 라벨
+	FVector TextPos = GetActorLocation() + FVector(0, 0, 60);
+	const FString Label = FString::Printf(TEXT("[%d] %s"), Nodetype.Id, *UEnum::GetValueAsString(Nodetype.Type));
+	DrawDebugString(GetWorld(), TextPos, Label, nullptr, FColor::White, 0.f, true, 1.0f);
+#endif
+}
+
+void AMapNode::SetState(EMapNodeState NewState)
+{
+	Nodetype.State = NewState;
+	RefreshVisuals();
+}
+
+void AMapNode::OnConstruction(const FTransform& Transform)
+{
+	Super::OnConstruction(Transform);
+
+	// (선택) 2D 편집 좌표를 Actor 위치와 동기화하고 싶으면 여기에 반영
+	// Nodetype.Pos = FVector2D(GetActorLocation().X, GetActorLocation().Y);
+
+	// 시각 갱신
+	RefreshVisuals();
+
+#if WITH_EDITOR
+	// 에디터에서 이웃 간 디버그 라인
+	const FVector From = GetActorLocation();
+	for (const TObjectPtr<AMapNode>& N : Neighbors)
+	{
+		if (!IsValid(N) || N == this) continue;
+
+		const FVector To = N->GetActorLocation();
+		// 편도 중복 라인 방지: Id가 더 큰 쪽에서만 그림
+		if (N->Nodetype.Id < Nodetype.Id) continue;
+
+		DrawDebugLine(GetWorld(), From, To, FColor::Silver, false, 0.f, 0, 2.f);
+	}
+
+	// (선택) 구조체 내부 NeighborIds 자동 동기화
+	Nodetype.NeighborIds.Reset();
+	for (const TObjectPtr<AMapNode>& N : Neighbors)
+	{
+		if (IsValid(N))
+		{
+			Nodetype.NeighborIds.AddUnique(N->Nodetype.Id);
+		}
+	}
+#endif
 }

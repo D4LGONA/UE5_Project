@@ -2,6 +2,7 @@
 
 
 #include "Spine_EntityBase.h"
+#include "Math/UnrealMathUtility.h"
 
 // Sets default values
 ASpine_EntityBase::ASpine_EntityBase()
@@ -23,5 +24,21 @@ void ASpine_EntityBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (destNode != nullptr) {
+		FVector curPos = GetActorLocation();
+		FVector destPos = destNode->GetActorLocation();
+		destPos.Z = curPos.Z;
+
+		FVector newPos = FMath::VInterpConstantTo(curPos, destPos, DeltaTime, 500.0f);
+
+		SetActorLocation(newPos);  
+
+		float distance = FVector::Dist(newPos, destPos);
+		if (distance < 10.0f) {
+			SetActorLocation(destPos);
+			curNode = destNode;
+			destNode = nullptr;
+		}
+	}
 }
 

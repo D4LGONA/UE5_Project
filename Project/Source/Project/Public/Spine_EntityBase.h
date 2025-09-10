@@ -13,7 +13,7 @@ class PROJECT_API ASpine_EntityBase : public AActor
 {
 	GENERATED_BODY()
 	
-private:
+protected:
 	// 현재 위치한 노드를 지정
 	AMapNode* curNode = nullptr;
 	AMapNode* destNode = nullptr;

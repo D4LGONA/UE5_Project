@@ -83,9 +83,10 @@ public:
     // 상태 변경
     UFUNCTION(BlueprintCallable) void SetState(EMapNodeState NewState);
 
-    // 값/배치 변경 시(에디터) 호출 → 선(Neighbors) 디버그
     virtual void OnConstruction(const FTransform& Transform) override;
 
+    UFUNCTION(BlueprintCallable)
+    const TArray<AMapNode*>& GetNeighbors() const { return Neighbors; }
 
 
 protected:

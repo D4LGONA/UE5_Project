@@ -19,7 +19,6 @@ void ASpine_EntityBase::BeginPlay()
 	
 }
 
-// Called every frame
 void ASpine_EntityBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -27,11 +26,20 @@ void ASpine_EntityBase::Tick(float DeltaTime)
 	if (destNode != nullptr) {
 		FVector curPos = GetActorLocation();
 		FVector destPos = destNode->GetActorLocation();
+		destPos.X = destPos.X + 150.0f;
 		destPos.Z = curPos.Z;
 
-		FVector newPos = FMath::VInterpConstantTo(curPos, destPos, DeltaTime, 500.0f);
+		// ===== 좌우 방향 판별 =====
+		if (destPos.X > curPos.X) {
+			SetActorScale3D(FVector(-1.f, 1.f, 1.f));
+		}
+		else if (destPos.X < curPos.X) {
+			SetActorScale3D(FVector(1.f, 1.f, 1.f));
+		}
 
-		SetActorLocation(newPos);  
+		// ===== 이동 처리 =====
+		FVector newPos = FMath::VInterpConstantTo(curPos, destPos, DeltaTime, 500.0f);
+		SetActorLocation(newPos);
 
 		float distance = FVector::Dist(newPos, destPos);
 		if (distance < 10.0f) {
@@ -41,4 +49,3 @@ void ASpine_EntityBase::Tick(float DeltaTime)
 		}
 	}
 }
-

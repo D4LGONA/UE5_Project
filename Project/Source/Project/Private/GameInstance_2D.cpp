@@ -85,3 +85,16 @@ APawn* UGameInstance_2D::SpawnPlayer()
 
     return NewPawn;
 }
+
+bool UGameInstance_2D::ConsumeMovePoint()
+{
+    if (CurrentMovePoints > 0)
+    {
+        CurrentMovePoints--;
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}

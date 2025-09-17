@@ -20,7 +20,15 @@ public:
     UPROPERTY(EditAnywhere)
     TSubclassOf<APawn> PlayerPawnClass;
 
-private:
     UFUNCTION(BlueprintCallable, Category = "Startup")
     APawn* SpawnPlayer();
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Node")
+    int32 MaxMovePoints = 10;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Node")
+    int32 CurrentMovePoints = 10;
+
+    UFUNCTION(BlueprintCallable)
+    bool ConsumeMovePoint();  // 1 줄이고 성공/실패 반환
 };

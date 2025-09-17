@@ -32,7 +32,7 @@ void ASpine_EntityBase::Tick(float DeltaTime)
 
 		// ÁÂ¿ì ¹æÇâ
 		if (destPos.X > curPos.X) {
-			SetActorScale3D(FVector(1.f, -1.f, 1.f));
+			SetActorScale3D(FVector(-1.f, 1.f, 1.f));
 		}
 		else if (destPos.X < curPos.X) {
 			SetActorScale3D(FVector(1.f, 1.f, 1.f));

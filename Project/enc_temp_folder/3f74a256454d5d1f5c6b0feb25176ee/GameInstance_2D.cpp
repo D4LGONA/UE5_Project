@@ -62,15 +62,8 @@ APawn* UGameInstance_2D::SpawnPlayer()
 
     // 스폰
     
-    // 원래 노드 위치에 패딩 추가
-    FVector SpawnLoc = StartNode->GetActorLocation();
-    SpawnLoc.X += PADDING_X;
-    SpawnLoc.Z += PADDING_Z;
 
-    // 회전은 무조건 0,0,0
-    FRotator SpawnRot = FRotator::ZeroRotator;
-
-    const FTransform SpawnTM(SpawnRot, SpawnLoc, FVector(1.f));
+    const FTransform SpawnTM(StartNode->GetActorRotation(), StartNode->GetActorLocation(), FVector(1.f));
     FActorSpawnParameters Params;
     Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 

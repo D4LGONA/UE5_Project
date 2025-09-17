@@ -3,9 +3,6 @@
 #include "GameFramework/Actor.h"
 #include "MapNode.generated.h"
 
-#define PADDING_X 150.0f
-#define PADDING_Z 50.0f
-
 class UStaticMeshComponent;
 class UMaterialInstanceDynamic;
 class AMapNode;

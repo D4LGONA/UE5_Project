@@ -3,14 +3,17 @@
 
 #include "Enemy.h"
 
+// todo: 다양한 이동 로직 만들기 -> 플레이어 쫓아가기, 반복 패턴
+// todo: 
+
+
+// 이동할 노드 찾기
 AMapNode* AEnemy::NextNode()
 {
     if (!curNode) return nullptr;
 
-    // 1. 현재 노드 이웃 중
     const TArray<AMapNode*>& Neighbors = curNode->GetNeighbors();
 
-    // 2. AllowedNodes 안에 포함된 것만 후보
     TArray<AMapNode*> ValidNodes;
     for (AMapNode* Node : Neighbors)
     {
@@ -20,7 +23,6 @@ AMapNode* AEnemy::NextNode()
         }
     }
 
-    // 3. 랜덤 선택
     if (ValidNodes.Num() > 0)
     {
         int32 Index = FMath::RandRange(0, ValidNodes.Num() - 1);
@@ -29,6 +31,8 @@ AMapNode* AEnemy::NextNode()
 
     return nullptr;
 }
+
+// 스폰때 호출
 void AEnemy::InitEnemy(AMapNode* InStartNode)
 {
     StartNode = InStartNode;

@@ -7,11 +7,11 @@
 #include "MapNode.h"
 #include "Spine_EntityBase.generated.h"
 
-
+#define PADDING_X 150.0f
 
 
 UCLASS()
-class PROJECT_API ASpine_EntityBase : public APawn
+class PROJECT_API ASpine_EntityBase : public AActor
 {
 	GENERATED_BODY()
 	

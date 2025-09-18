@@ -7,9 +7,6 @@
 #include "Enemy.generated.h"
 
 
-/**
- * 
- */
 UCLASS()
 class PROJECT_API AEnemy : public ASpine_EntityBase
 {
@@ -31,4 +28,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void InitEnemy(AMapNode* InStartNode);
 
+protected:
+	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 };

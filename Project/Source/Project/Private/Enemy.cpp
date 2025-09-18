@@ -2,6 +2,7 @@
 
 
 #include "Enemy.h"
+#include "GameInstance_2D.h"
 
 // todo: 다양한 이동 로직 만들기 -> 플레이어 쫓아가기, 반복 패턴
 // todo: 
@@ -36,7 +37,42 @@ AMapNode* AEnemy::NextNode()
 void AEnemy::InitEnemy(AMapNode* InStartNode)
 {
     StartNode = InStartNode;
+    curNode = StartNode;
     AllowedNodes = GetNodesWithinDistance(StartNode, 2);
+}
+
+void AEnemy::BeginPlay()
+{
+    Super::BeginPlay();
+
+    if (IsValid(StartNode))
+    {
+        FVector BaseLoc = StartNode->GetActorLocation();
+
+        FVector NewLoc = BaseLoc;
+        NewLoc.X += PADDING_X;
+        NewLoc.Z = PADDING_Z;
+
+        SetActorLocation(NewLoc);
+
+        AllowedNodes = { StartNode };
+    }
+
+    if (auto* GI = GetGameInstance<UGameInstance_2D>())
+    {
+        GI->RegisterEnemy(this);
+    }
+
+    InitEnemy(StartNode);
+}
+
+void AEnemy::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    if (auto* GI = GetGameInstance<UGameInstance_2D>())
+    {
+        GI->UnregisterEnemy(this);
+    }
+    Super::EndPlay(EndPlayReason);
 }
 
 TArray<AMapNode*> AEnemy::GetNodesWithinDistance(AMapNode* Origin, int32 MaxDist)

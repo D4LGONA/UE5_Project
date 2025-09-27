@@ -1,267 +1,180 @@
+// MapManager.cpp
 #include "MapManager.h"
-#include "EngineUtils.h"
-#include "DrawDebugHelpers.h"
+#include "Engine/World.h"
+#include "Kismet/KismetMathLibrary.h"
+#include "Kismet/GameplayStatics.h"
+#include "Engine/World.h"
+#include "AssetRegistry/AssetRegistryModule.h" // (신규 생성 시 필요)
+#include "Editor.h" 
 
-// ====== 헬퍼 ======
-static TPair<int32, int32> UndirectedKey(int32 A, int32 B)
-{
-    return (A < B) ? TPair<int32, int32>(A, B) : TPair<int32, int32>(B, A);
-}
-
-ENodeType AMapManager::MapNodeType(EMapNodeType In)
-{
-    switch (In)
-    {
-    case EMapNodeType::Start:       return ENodeType::Normal; // 시작은 표시용, 실제 시작은 Asset.StartNodeId
-    case EMapNodeType::Normal:      return ENodeType::Normal;
-    case EMapNodeType::Locked:      return ENodeType::Lock;
-    case EMapNodeType::Interaction: return ENodeType::Interact;
-    case EMapNodeType::Event:       return ENodeType::Event;
-    case EMapNodeType::Exit:        return ENodeType::Exit;
-    default:                        return ENodeType::Normal;
-    }
-}
-bool AMapManager::IsLockedDesign(EMapNodeType In)
-{
-    return In == EMapNodeType::Locked;
-}
-
-AMapManager::AMapManager()
-{
+AMapManager::AMapManager() {
     PrimaryActorTick.bCanEverTick = false;
 }
 
-// ====== 베이크 ======t
-void AMapManager::BakeFromLevel()
+void AMapManager::BakePlacedNodesToAsset(UNodeGraphData* OutAsset)
 {
 #if WITH_EDITOR
-    if (!TargetAsset)
-    {
-        UE_LOG(LogTemp, Error, TEXT("[MapManager] TargetAsset이 비어있습니다."));
-        return;
+    if (!OutAsset) { 
+        UE_LOG(LogTemp, Warning, TEXT("Bake: OutAsset is null")); 
+        return; 
     }
 
-    TArray<AMapNode*> NodesInLevel;
-    GatherLevelNodes(NodesInLevel);
+    UWorld* W = GetWorld();
+    if (!W) return;
 
-    if (NodesInLevel.Num() == 0)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("[MapManager] 레벨에서 노드를 찾지 못했습니다."));
-        return;
+    // 1) 레벨의 모든 AMapNode 수집
+    TArray<AActor*> Found;
+    UGameplayStatics::GetAllActorsOfClass(W, AMapNode::StaticClass(), Found);
+    if (Found.Num() == 0) { 
+        UE_LOG(LogTemp, Warning, TEXT("Bake: No AMapNode found in level.")); 
+        return; 
     }
 
-    // 중복 Id 체크
-    {
-        TSet<int32> Seen; bool bDup = false;
-        for (AMapNode* NA : NodesInLevel)
-        {
-            if (Seen.Contains(NA->Nodetype.Id))
-            {
-                UE_LOG(LogTemp, Error, TEXT("[MapManager] 중복 Id: %d (%s)"),
-                    NA->Nodetype.Id, *NA->GetName());
-                bDup = true;
+    // 2) NodeId -> AMapNode 매핑 (유효 Id만)
+    TMap<int32, AMapNode*> NodeByIdLocal;
+    NodeByIdLocal.Reserve(Found.Num());
+    for (AActor* A : Found) {
+        if (AMapNode* N = Cast<AMapNode>(A)) {
+            const int32 Id = N->Nodetype.Id;
+            if (Id < 0) {
+                UE_LOG(LogTemp, Warning, TEXT("Bake: Node %s has invalid NodeId(%d). Assign IDs first."),
+                    *N->GetName(), Id);
+                continue;
             }
-            Seen.Add(NA->Nodetype.Id);
-        }
-        //if (bDup) { UE_LOG(LogTemp, Error, TEXT("[MapManager]: 중복 Id로 중단")); return; }
-    }
-
-    // 초기화
-    TargetAsset->Nodes.Reset();
-    TargetAsset->Edges.Reset();
-
-    // 노드 작성
-    TMap<int32, int32> IdToIndex;
-    TargetAsset->Nodes.Reserve(NodesInLevel.Num());
-
-    for (AMapNode* NA : NodesInLevel)
-    {
-        FNodeDef Def;
-        Def.Id = NA->Nodetype.Id;
-        Def.Type = MapNodeType(NA->Nodetype.Type);
-        Def.bLocked = IsLockedDesign(NA->Nodetype.Type) || (NA->Nodetype.State == EMapNodeState::Closed);
-        Def.WorldPos = NA->GetActorLocation();
-
-        int32 NewIdx = TargetAsset->Nodes.Add(Def);
-        IdToIndex.Add(Def.Id, NewIdx);
-    }
-
-    // 엣지 생성 (Neighbors → 무방향 고유)
-    TSet<TPair<int32, int32>> Added;
-    for (AMapNode* NA : NodesInLevel)
-    {
-        const int32 FromId = NA->Nodetype.Id;
-        for (AMapNode* NB : NA->Neighbors)
-        {
-            if (!IsValid(NB)) continue;
-            const int32 ToId = NB->Nodetype.Id;
-            if (FromId == ToId) continue;
-
-            const auto Key = UndirectedKey(FromId, ToId);
-            if (!Added.Contains(Key))
-            {
-                Added.Add(Key);
-                FNodeEdge E; E.FromId = FromId; E.ToId = ToId;
-                TargetAsset->Edges.Add(E);
-            }
+            NodeByIdLocal.Add(Id, N);
         }
     }
-
-    // 이웃 목록 자동 구축
-    TargetAsset->BuildNeighborsFromEdges();
-
-    if (bOverrideStartSettings)
-    {
-        TargetAsset->StartNodeId = StartNodeId;
-        TargetAsset->StartTurns = StartTurns;
+    if (NodeByIdLocal.Num() == 0) { 
+        UE_LOG(LogTemp, Warning, TEXT("Bake: No valid NodeId.")); 
+        return; 
     }
 
-    TargetAsset->MarkPackageDirty();
-    ValidateGraphAfterBake();
+    // 3) FMapNodeDef 배열 구성 (월드 XY를 그대로 저장)
+    TArray<FMapNodeDef> NewDefs;
+    NewDefs.Reserve(NodeByIdLocal.Num());
 
-    UE_LOG(LogTemp, Display, TEXT("[MapManager] Bake OK: Nodes=%d, Edges=%d, Start=%d, Turns=%d"),
-        TargetAsset->Nodes.Num(), TargetAsset->Edges.Num(),
-        TargetAsset->StartNodeId, TargetAsset->StartTurns);
+    for (const auto& Pair : NodeByIdLocal) {
+        const int32 Id = Pair.Key;
+        const AMapNode* N = Pair.Value;
+        if (!IsValid(N)) continue;
 
-    if (GIsEditor)
-    {
-        DrawDebugString(GetWorld(), GetActorLocation() + FVector(0, 0, 100),
-            FString::Printf(TEXT("Bake OK: %d nodes / %d edges"),
-                TargetAsset->Nodes.Num(), TargetAsset->Edges.Num()),
-            nullptr, FColor::Green, 3.f, true, 1.2f);
+        FMapNodeDef Def;
+        Def.Id  = Id;
+
+        const FVector WP = N->GetActorLocation();
+        Def.Pos = FVector2D(WP.X, WP.Y); // 월드 XY 그대로, Z는 무시
+
+        // 이웃 긁어오기: (널/자기참조/미등록 노드 방어)
+        TSet<int32> NbSet; // 중복 제거 겸용
+        for (AMapNode* Nb : N->Neighbors) {
+            if (!IsValid(Nb)) continue;
+            const int32 NbId = Nb->Nodetype.Id;
+            if (NbId <= 0) continue;
+            if (NbId == Id) continue;                         // 자기참조 제거
+            if (!NodeByIdLocal.Contains(NbId)) continue;      // 맵에 없는 노드면 스킵
+            NbSet.Add(NbId);
+        }
+
+        // 정렬된 배열로 변환
+        NbSet.Array();
+        Algo::Sort(Def.NeighborIds);
+
+        NewDefs.Add(Def);
     }
+
+    // 4) DA에 덮어쓰기 + 더티 마킹
+    OutAsset->Modify();
+    OutAsset->Nodes = MoveTemp(NewDefs);
+    OutAsset->MarkPackageDirty();
+
+    UE_LOG(LogTemp, Log, TEXT("Bake: Wrote %d nodes to %s"), OutAsset->Nodes.Num(), *OutAsset->GetName());
+#else
+    UE_LOG(LogTemp, Warning, TEXT("BakePlacedNodesToAsset is editor-only."));
 #endif
 }
 
-void AMapManager::ValidateGraphAfterBake() const
-{
-    if (!TargetAsset) return;
-
-    // Exit 노드 권장
-    bool bHasExit = false;
-    for (const FNodeDef& N : TargetAsset->Nodes)
-        if (N.Type == ENodeType::Exit) { bHasExit = true; break; }
-    if (!bHasExit)
-        UE_LOG(LogTemp, Warning, TEXT("[MapManager] Exit 노드가 없습니다."));
-
-    // 고립 노드 경고
-    TSet<int32> HasEdge;
-    for (const FNodeEdge& E : TargetAsset->Edges)
-    {
-        HasEdge.Add(E.FromId); HasEdge.Add(E.ToId);
-    }
-
-    for (const FNodeDef& N : TargetAsset->Nodes)
-    {
-        if (!HasEdge.Contains(N.Id))
-            UE_LOG(LogTemp, Warning, TEXT("[MapManager] 고립 노드: Id=%d Pos=%s"),
-                N.Id, *N.WorldPos.ToString());
-    }
+void AMapManager::OnConstruction(const FTransform&) {
+    BuildGraph();
 }
 
-// ====== 런타임 메모리 상태 ======
-void AMapManager::InitializeRunFromAsset()
-{
-    if (!TargetAsset)
-    {
-        UE_LOG(LogTemp, Error, TEXT("[MapManager] TargetAsset이 없습니다."));
-        return;
+void AMapManager::ClearGraph() {
+    for (AActor* L : SpawnedLinks) if (IsValid(L)) L->Destroy();
+    SpawnedLinks.Empty();
+
+    for (auto& Pair : NodeById) if (IsValid(Pair.Value)) Pair.Value->Destroy();
+    NodeById.Empty();
+
+    EdgeSet.Empty();
+}
+
+void AMapManager::BuildGraph() {
+    ClearGraph();
+    if (!TargetAsset || !*NodeClass) return;
+
+    UWorld* W = GetWorld();
+    if (!W) return;
+
+    // 1) 노드 스폰
+    for (const FMapNodeDef& Def : TargetAsset->Nodes) {
+        FActorSpawnParameters S;
+        S.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+        AMapNode* Node = W->SpawnActor<AMapNode>(NodeClass, FVector(Def.Pos, 0.0f), FRotator::ZeroRotator, S);
+        if (!Node) continue;
+
+        Node->Nodetype.Id = Def.Id;
+        Node->Nodetype.NeighborIds = Def.NeighborIds;
+        if(Def.Type == EMapNodeType::Start)
+            StartNode = Node;
+
+        NodeById.Add(Def.Id, Node);
     }
 
-    CurrentNodeId = TargetAsset->StartNodeId;
-    TurnsLeft = TargetAsset->StartTurns;
+    // 2) 링크 스폰: 각 노드의 NeighborIds 사용, (min,max) 키로 중복 방지
+    EdgeSet.Empty();
 
-    NodeStateById.Reset();
-    NodeStateById.Reserve(TargetAsset->Nodes.Num());
-    for (const FNodeDef& N : TargetAsset->Nodes)
+    auto KeyOf = [](int32 A, int32 B) {
+        return (A < B) ? FIntPoint(A, B) : FIntPoint(B, A);
+        };
+
+    for (const TPair<int32, AMapNode*>& Pair : NodeById)
     {
-        // 설계 잠금(bLocked) → 시작 상태를 Closed로, 아니면 Open
-        NodeStateById.Add(N.Id, N.bLocked ? EMapNodeState::Closed : EMapNodeState::Open);
-    }
-}
+        const int32 AId = Pair.Key;
+        AMapNode* ANode = Pair.Value;
+        if (!IsValid(ANode)) continue;
 
-void AMapManager::SetNodeState(int32 NodeId, EMapNodeState NewState)
-{
-    if (NodeStateById.Contains(NodeId))
-        NodeStateById[NodeId] = NewState;
-}
-
-EMapNodeState AMapManager::GetNodeState(int32 NodeId) const
-{
-    if (const EMapNodeState* Found = NodeStateById.Find(NodeId))
-        return *Found;
-    return EMapNodeState::Open; // 기본
-}
-
-void AMapManager::ApplyMemoryStateToLevel()
-{
-    TArray<AMapNode*> Nodes;
-    GatherLevelNodes(Nodes);
-    for (AMapNode* N : Nodes)
-    {
-        if (const EMapNodeState* S = NodeStateById.Find(N->Nodetype.Id))
-            N->SetState(*S);
-    }
-}
-
-void AMapManager::GatherLevelNodes(TArray<AMapNode*>& Out) const
-{
-    Out.Reset();
-    if (UWorld* W = GetWorld())
-    {
-        for (TActorIterator<AMapNode> It(W, NodeClass ? *NodeClass : AMapNode::StaticClass()); It; ++It)
+        // 자기참조/유효하지 않은 이웃 방어
+        for (int32 BId : ANode->Nodetype.NeighborIds)
         {
-            if (IsValid(*It)) { Out.Add(*It); }
+            if (BId == AId) continue;                 // 자기참조 제거
+            AMapNode* BNode = NodeById.FindRef(BId);
+            if (!IsValid(BNode)) continue;            // 맵에 없는 이웃 스킵
+
+            FIntPoint Key = KeyOf(AId, BId);
+            if (EdgeSet.Contains(Key)) continue;      // 이미 만든 간선은 스킵
+
+            SpawnLinkOnce(AId, BId);                  // 실제 스폰
+            EdgeSet.Add(Key);
         }
     }
 }
 
-// 좌표(X→Y) 정렬 기준
-struct FNodeSortXY
-{
-    bool operator()(const AMapNode& A, const AMapNode& B) const
-    {
-        const FVector& PA = A.GetActorLocation();
-        const FVector& PB = B.GetActorLocation();
-        if (FMath::IsNearlyEqual(PA.X, PB.X, 0.5f))
-        {
-            return PA.Y < PB.Y;
-        }
-        return PA.X < PB.X;
-    }
-};
+void AMapManager::SpawnLinkOnce(int32 AId, int32 BId) {
+    if (!*LinkClass) return;
 
-void AMapManager::AutoAssignIdsInLevel()
-{
-#if WITH_EDITOR
-    TArray<AMapNode*> Nodes;
-    GatherLevelNodes(Nodes);
+    AMapNode* A = NodeById.FindRef(AId);
+    AMapNode* B = NodeById.FindRef(BId);
+    if (!A || !B) return;
 
-    if (Nodes.Num() == 0)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("[MapMaker] 레벨에서 AMapNode를 찾지 못했습니다."));
-        return;
-    }
+    UWorld* W = GetWorld();
+    if (!W) return;
 
-    // 정렬: 좌표(X→Y) 또는 이름순
-    if (bSortIdsByXThenY)
-    {
-        Nodes.Sort([](const AMapNode& A, const AMapNode& B) { return FNodeSortXY()(A, B); });
+    FActorSpawnParameters S;
+    S.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+    AMapLink* Link = W->SpawnActor<AMapLink>(LinkClass, FVector::ZeroVector, FRotator::ZeroRotator, S);
+    Link->StartNode = A;
+    Link->EndNode = B;
+    if (Link) {
+        SpawnedLinks.Add(Link);
     }
-    else
-    {
-        Nodes.Sort([](const AMapNode& A, const AMapNode& B) { return A.GetFName().LexicalLess(B.GetFName()); });
-    }
-
-    // 0..N-1 자동 부여
-    for (int32 i = 0; i < Nodes.Num(); ++i)
-    {
-        if (!IsValid(Nodes[i])) continue;
-        Nodes[i]->Modify();                   // Undo 기록
-        Nodes[i]->Nodetype.Id = i;            // ★ ID 세팅
-        Nodes[i]->RerunConstructionScripts(); // 디버그/라벨 갱신
-    }
-
-    UE_LOG(LogTemp, Display, TEXT("[MapMaker] ID 자동할당 완료: %d개 (0..%d)"), Nodes.Num(), Nodes.Num() - 1);
-#endif
 }

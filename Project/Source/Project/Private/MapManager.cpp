@@ -76,7 +76,7 @@ void AMapManager::BakePlacedNodesToAsset(UNodeGraphData* OutAsset)
         }
 
         // 정렬된 배열로 변환
-        NbSet.Array();
+        Def.NeighborIds = NbSet.Array();
         Algo::Sort(Def.NeighborIds);
 
         NewDefs.Add(Def);

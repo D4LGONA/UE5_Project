@@ -21,13 +21,6 @@ public:
     virtual void Init() override;
     virtual void Shutdown() override;
 
-    // 플레이어 클래스
-    UPROPERTY(EditAnywhere)
-    TSubclassOf<APawn> PlayerPawnClass;
-
-    UFUNCTION(BlueprintCallable, Category = "Startup")
-    APawn* SpawnPlayer();
-
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Node")
     int32 MaxMovePoints = 10;
 

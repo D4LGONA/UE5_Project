@@ -44,8 +44,15 @@ public:
     UPROPERTY(EditAnywhere, Category = "Graph|Construct")
     TSubclassOf<AActor> PlayerClass;
 
+    UFUNCTION(BlueprintCallable, Category = "Startup")
+    void SpawnPlayer();
+
+    // ------------------------------------------------------------------
+
+    virtual void BeginPlay() override;
+
 protected:
-    virtual void OnConstruction(const FTransform& Transform) override;
+    //virtual void OnConstruction(const FTransform& Transform) override;
 
 private:
     // 스폰 결과 보관

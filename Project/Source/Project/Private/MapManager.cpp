@@ -93,8 +93,59 @@ void AMapManager::BakePlacedNodesToAsset(UNodeGraphData* OutAsset)
 #endif
 }
 
-void AMapManager::OnConstruction(const FTransform&) {
-    BuildGraph();
+void AMapManager::SpawnPlayer()
+{
+    UWorld* W = GetWorld();
+    if (!W) return;
+
+    // StartNode가 지정되어 있지 않으면 DA에서 Type==Start를 찾아본다 → 실패 시 최소 ID 노드로 폴백
+    if (!IsValid(StartNode)) {
+        int32 StartId = -1;
+
+        if (TargetAsset) {
+            for (const FMapNodeDef& N : TargetAsset->Nodes) {
+                if (N.Type == EMapNodeType::Start) { StartId = N.Id; break; }
+            }
+        }
+        if (StartId == -1 && NodeById.Num() > 0) {
+            int32 MinId = TNumericLimits<int32>::Max();
+            for (const auto& Pair : NodeById) { MinId = FMath::Min(MinId, Pair.Key); }
+            StartId = MinId;
+        }
+
+        if (StartId != -1) {
+            StartNode = NodeById.FindRef(StartId);
+        }
+    }
+
+    if (!IsValid(StartNode)) {
+        UE_LOG(LogTemp, Error, TEXT("SpawnPlayer: Start node not found."));
+        return;
+    }
+
+    const FVector SpawnLoc = StartNode->GetActorLocation();
+    const FRotator SpawnRot = FRotator::ZeroRotator;
+
+
+    // 새로 스폰
+    if (!*PlayerClass) {
+        UE_LOG(LogTemp, Warning, TEXT("SpawnPlayer: PlayerPawnClass is not set."));
+        return;
+    }
+
+    FActorSpawnParameters Params;
+    Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+    APawn* NewPawn = W->SpawnActor<APawn>(PlayerClass, SpawnLoc, SpawnRot, Params);
+    if (!NewPawn) {
+        UE_LOG(LogTemp, Error, TEXT("SpawnPlayer: Failed to spawn player pawn."));
+        return;
+    }
+}
+
+void AMapManager::BeginPlay()
+{
+    SpawnPlayer();
 }
 
 void AMapManager::ClearGraph() {
@@ -128,6 +179,62 @@ void AMapManager::BuildGraph() {
             StartNode = Node;
 
         NodeById.Add(Def.Id, Node);
+    }
+
+    // === 1) NeighborIds를 양방향으로 보정 ===
+    for (auto& Pair : NodeById)
+    {
+        const int32 AId = Pair.Key;
+        AMapNode* ANode = Pair.Value;
+        if (!IsValid(ANode)) continue;
+
+        // A의 이웃을 순회하면서 B에도 A를 추가
+        for (int32 BId : ANode->Nodetype.NeighborIds)
+        {
+            if (BId == AId) continue; // 자기참조 방지
+            AMapNode* BNode = NodeById.FindRef(BId);
+            if (!IsValid(BNode)) continue;
+
+            // B에 A가 없으면 추가
+            if (!BNode->Nodetype.NeighborIds.Contains(AId))
+            {
+                BNode->Nodetype.NeighborIds.Add(AId);
+            }
+        }
+    }
+
+    // (선택) 정렬 + 중복제거
+    for (auto& Pair : NodeById)
+    {
+        const int32 NodeId = Pair.Key;
+        AMapNode* Node = Pair.Value;
+        if (!IsValid(Node)) continue;
+
+        // 중복 제거 + 자기 자신 제거
+        TSet<int32> Dedup(Node->Nodetype.NeighborIds);
+        Dedup.Remove(NodeId);
+
+        // 배열로 되돌리고 정렬
+        Node->Nodetype.NeighborIds = Dedup.Array();
+        Node->Nodetype.NeighborIds.Sort();
+    }
+
+    // === 2) 포인터 배열 Neighbors도 최종 Id 기준으로 채우기 ===
+    for (auto& Pair : NodeById)
+    {
+        const int32 AId = Pair.Key;
+        AMapNode* ANode = Pair.Value;
+        if (!IsValid(ANode)) continue;
+
+        ANode->Neighbors.Reset();
+        for (int32 BId : ANode->Nodetype.NeighborIds)
+        {
+            if (BId == AId) continue;
+            if (AMapNode* BNode = NodeById.FindRef(BId))
+            {
+                ANode->Neighbors.Add(BNode);
+            }
+        }
     }
 
     // 2) 링크 스폰: 각 노드의 NeighborIds 사용, (min,max) 키로 중복 방지

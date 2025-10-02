@@ -49,7 +49,9 @@ public:
 
     // ------------------------------------------------------------------
 
+    // 데이터 읽어서 저장
     virtual void BeginPlay() override;
+    void LoadData();
 
 protected:
     //virtual void OnConstruction(const FTransform& Transform) override;

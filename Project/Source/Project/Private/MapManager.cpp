@@ -145,7 +145,30 @@ void AMapManager::SpawnPlayer()
 
 void AMapManager::BeginPlay()
 {
+    LoadData();
     SpawnPlayer();
+}
+
+void AMapManager::LoadData()
+{
+    UWorld* W = GetWorld();
+    if (!W) return;
+
+    TArray<AActor*> Found;
+    UGameplayStatics::GetAllActorsOfClass(W, AMapNode::StaticClass(), Found);
+    if (Found.Num() == 0) {
+        UE_LOG(LogTemp, Warning, TEXT("Bake: No AMapNode found in level."));
+        return;
+    }
+
+    for (AActor* A : Found) {
+        if (AMapNode* N = Cast<AMapNode>(A)) {
+            const int32 Id = N->Nodetype.Id;
+            NodeById.Add(Id, N);
+            if (N->Nodetype.Type == EMapNodeType::Start)
+                StartNode = N;
+        }
+    }
 }
 
 void AMapManager::ClearGraph() {

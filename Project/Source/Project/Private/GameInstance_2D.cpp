@@ -4,9 +4,8 @@
 #include "GameFramework/PlayerController.h"
 #include "Engine/World.h"
 
-// 노드 클래스/정의 헤더 (프로젝트 경로에 맞게 include)
-#include "MapNode.h"            // AMapNode
-#include "NodeGraphData.h"      // FMapNodeDef, EMapNodeType 등이 여기에 있을 가능성이 높음
+#include "MapNode.h"        
+#include "NodeGraphData.h"  
 
 void UGameInstance_2D::Init()
 {

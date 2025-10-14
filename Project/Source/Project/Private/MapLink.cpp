@@ -26,3 +26,6 @@ void AMapLink::Tick(float DeltaTime)
 
 }
 
+void AMapLink::SetupLink_Implementation()
+{
+}

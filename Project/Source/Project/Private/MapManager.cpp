@@ -301,9 +301,13 @@ void AMapManager::SpawnLinkOnce(int32 AId, int32 BId) {
 
     FActorSpawnParameters S;
     S.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-    AMapLink* Link = W->SpawnActor<AMapLink>(LinkClass, FVector::ZeroVector, FRotator::ZeroRotator, S);
+    const FTransform SpawnTransform(FRotator::ZeroRotator, FVector::ZeroVector);
+    AMapLink* Link = W->SpawnActor<AMapLink>(LinkClass, SpawnTransform, S);
     Link->StartNode = A;
     Link->EndNode = B;
+
+    Link->SetupLink();
+
     if (Link) {
         SpawnedLinks.Add(Link);
     }

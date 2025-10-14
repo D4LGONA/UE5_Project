@@ -32,4 +32,8 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Link")
 	AMapNode* EndNode = nullptr;
 
+	UFUNCTION(BlueprintNativeEvent)
+	void SetupLink();
+	virtual void SetupLink_Implementation();
+
 };

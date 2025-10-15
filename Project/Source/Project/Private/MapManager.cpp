@@ -60,6 +60,8 @@ void AMapManager::BakePlacedNodesToAsset(UNodeGraphData* OutAsset)
 
         FMapNodeDef Def;
         Def.Id  = Id;
+        Def.Type = N->Nodetype.Type;
+        Def.State = N->Nodetype.State;
 
         const FVector WP = N->GetActorLocation();
         Def.Pos = FVector2D(WP.X, WP.Y); // 월드 XY 그대로, Z는 무시
@@ -123,7 +125,7 @@ void AMapManager::SpawnPlayer()
         return;
     }
 
-    const FVector SpawnLoc = StartNode->GetActorLocation();
+    const FVector SpawnLoc = StartNode->GetActorLocation() + FVector{0.0f, 0.0f, 20.0f};
     const FRotator SpawnRot = FRotator::ZeroRotator;
 
 

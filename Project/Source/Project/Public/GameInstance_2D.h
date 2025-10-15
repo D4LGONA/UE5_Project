@@ -8,6 +8,9 @@
 
 class AMapNode;
 
+// µ®∏Æ∞‘¿Ã∆Æ
+
+
 UCLASS()
 class PROJECT_API UGameInstance_2D : public UGameInstance
 {

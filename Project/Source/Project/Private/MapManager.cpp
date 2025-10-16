@@ -5,6 +5,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Engine/World.h"
 #include "AssetRegistry/AssetRegistryModule.h" // (신규 생성 시 필요)
+#include "Spine_EntityBase.h"
 #include "Editor.h" 
 
 AMapManager::AMapManager() {
@@ -139,6 +140,11 @@ void AMapManager::SpawnPlayer()
     Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
     APawn* NewPawn = W->SpawnActor<APawn>(PlayerClass, SpawnLoc, SpawnRot, Params);
+    if (ASpine_EntityBase* MP = Cast<ASpine_EntityBase>(NewPawn))
+    {
+        MP->curNode = StartNode;
+    }
+
     if (!NewPawn) {
         UE_LOG(LogTemp, Error, TEXT("SpawnPlayer: Failed to spawn player pawn."));
         return;

@@ -15,7 +15,7 @@ class PROJECT_API ASpine_EntityBase : public APawn
 {
 	GENERATED_BODY()
 	
-protected:
+public:
 	/** 현재 위치한 노드 */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
 	AMapNode* curNode = nullptr;

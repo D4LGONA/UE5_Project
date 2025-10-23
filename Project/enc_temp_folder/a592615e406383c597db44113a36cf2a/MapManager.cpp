@@ -96,10 +96,10 @@ void AMapManager::BakePlacedNodesToAsset(UNodeGraphData* OutAsset)
 #endif
 }
 
-APawn* AMapManager::SpawnPlayer()
+void AMapManager::SpawnPlayer()
 {
     UWorld* W = GetWorld();
-    if (!W) return nullptr;
+    if (!W) return;
 
     // StartNode가 지정되어 있지 않으면 DA에서 Type==Start를 찾아본다 → 실패 시 최소 ID 노드로 폴백
     if (!IsValid(StartNode)) {
@@ -123,7 +123,7 @@ APawn* AMapManager::SpawnPlayer()
 
     if (!IsValid(StartNode)) {
         UE_LOG(LogTemp, Error, TEXT("SpawnPlayer: Start node not found."));
-        return nullptr;
+        return;
     }
 
     const FVector SpawnLoc = StartNode->GetActorLocation() + FVector{0.0f, 0.0f, 20.0f};
@@ -133,7 +133,7 @@ APawn* AMapManager::SpawnPlayer()
     // 새로 스폰
     if (!*PlayerClass) {
         UE_LOG(LogTemp, Warning, TEXT("SpawnPlayer: PlayerPawnClass is not set."));
-        return nullptr;
+        return;
     }
 
     FActorSpawnParameters Params;
@@ -147,15 +147,14 @@ APawn* AMapManager::SpawnPlayer()
 
     if (!NewPawn) {
         UE_LOG(LogTemp, Error, TEXT("SpawnPlayer: Failed to spawn player pawn."));
-        return nullptr;
+        return;
     }
-    return NewPawn;
 }
 
 void AMapManager::BeginPlay()
 {
     LoadData();
-    Super::BeginPlay();
+    SpawnPlayer();
 }
 
 void AMapManager::LoadData()

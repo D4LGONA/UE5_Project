@@ -45,7 +45,7 @@ public:
     TSubclassOf<AActor> PlayerClass;
 
     UFUNCTION(BlueprintCallable, Category = "Startup")
-    APawn* SpawnPlayer();
+    void SpawnPlayer();
 
     // ------------------------------------------------------------------
 

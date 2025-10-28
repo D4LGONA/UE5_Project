@@ -54,13 +54,14 @@ public:
     void LoadData();
 
 protected:
-    //virtual void OnConstruction(const FTransform& Transform) override;
+
+    // 스폰 결과 보관
+    UPROPERTY(Transient, BlueprintReadWrite) TMap<int32, AMapNode*> NodeById;
+    UPROPERTY(Transient, BlueprintReadWrite) TArray<AActor*> SpawnedLinks;
+
 
 private:
-    // 스폰 결과 보관
-    UPROPERTY(Transient) TMap<int32, AMapNode*> NodeById;
-    UPROPERTY(Transient) TArray<AActor*> SpawnedLinks;
-    
+
     void ClearGraph();
     void SpawnLinkOnce(int32 AId, int32 BId);
 

@@ -6,7 +6,6 @@
 #include "Spine_EntityBase.h"
 #include "Enemy.generated.h"
 
-
 UCLASS()
 class PROJECT_API AEnemy : public ASpine_EntityBase
 {

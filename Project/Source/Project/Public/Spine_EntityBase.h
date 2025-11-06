@@ -8,6 +8,17 @@
 #include "Spine_EntityBase.generated.h"
 
 
+USTRUCT(BlueprintType)
+struct FCharacterStats
+{
+	GENERATED_BODY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
+	int32 MaxHP = 100;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
+	int32 CurrentHP = 100;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
+	int32 AttackPower = 100;
+};
 
 
 UCLASS()
@@ -23,6 +34,9 @@ public:
 	/** 이동 목적지 노드(있으면 이동 중) */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
 	AMapNode* destNode = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FCharacterStats Stat;
 
 public:	
 	// Sets default values for this actor's properties

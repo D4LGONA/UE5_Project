@@ -4,9 +4,6 @@
 #include "Spine_EntityBase.h"
 #include "Math/UnrealMathUtility.h"
 
-
-
-
 // Sets default values
 ASpine_EntityBase::ASpine_EntityBase()
 {

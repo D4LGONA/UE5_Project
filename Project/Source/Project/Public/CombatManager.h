@@ -36,6 +36,7 @@ struct FActionCard { // 카드정보
 
 // ===== 델리게이트 (UI용) =====
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPhaseChanged, ECombatPhase, NewPhase);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnDoAction, EActionType, Action, bool, bIsPlayer);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnUnitMoved, bool, bIsPlayer, FPos, NewPos);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnHit, bool, bAttackerIsPlayer, bool, bDefenderIsPlayer, int32, DefenderNewHP);
 
@@ -56,10 +57,9 @@ public:
     // === 설정 ===
     UFUNCTION(BlueprintCallable)
     void Setup(); // 초기화 함수, 전투 진입시에 호출
-
     void ResetTurn(); // 턴 초기화.
-
     void InitBoard(int32 InSizeX = 4, int32 InSizeY = 3);
+
     // === 읽기 ===
     UFUNCTION(BlueprintPure) ECombatPhase GetPhase() const { return Phase; }
     UFUNCTION(BlueprintPure) int32 GetBoardSizeX() const { return BoardSizeX; }
@@ -78,9 +78,19 @@ private:
     // 데이터관리 -> 턴마다 초기화해줘야 함
     FActionCard PlayerCards[MAX_CARDS];
     FActionCard EnemyCards[MAX_CARDS];
-    TArray<FActionCard> Deck; // 이번 발동순서대로
+    TArray<TPair<FActionCard, bool>> Deck; // 이번 발동순서대로
     int CurCardNum = 0; // 등록한 카드 개수
     int CurDeckIdx = 0; // 발동할 것
+
+	FPos PlayerPos;
+	FPos EnemyPos;
+
+    // 방어 상태 & 소비 여부
+    bool bPlayerBlocking = false;
+    bool bEnemyBlocking = false;
+    bool bPlayerBlockConsumed = false; // 해당 턴에 방어로 공격을 막았는지
+    bool bEnemyBlockConsumed = false;
+
 
     void SetDeck();
 

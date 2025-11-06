@@ -31,13 +31,18 @@ void ACombatManager::Tick(float DeltaTime)
 
 void ACombatManager::InitBoard(int32 InSizeX, int32 InSizeY)
 {
-    BoardSizeX = FMath::Max(1, InSizeX);
+    BoardSizeX = FMath::Max(2, InSizeX);
     BoardSizeY = FMath::Max(1, InSizeY);
-#if !(UE_BUILD_SHIPPING || UE_BUILD_TEST)
-    UKismetSystemLibrary::PrintString(this,
-        FString::Printf(TEXT("[Combat] InitBoard: %d x %d"), BoardSizeX, BoardSizeY),
-        true, true, FLinearColor::Yellow, 2.0f);
-#endif
+
+    const int32 MidY = BoardSizeY / 2;
+
+    // ÁÂÇ¥±âÁØ -> ÁÂÇÏ´Ü(0, 0)
+    PlayerPos = { 0, 1 };
+    EnemyPos = { 3, 1 };
+
+    // ÃÊ±â À§Ä¡ ºê·ÎµåÄ³½ºÆ® -> ÀÌ°É·Î ÀÌ¹ÌÁö ¶ç¿ì±â.
+    OnUnitMoved.Broadcast(true, PlayerPos);
+    OnUnitMoved.Broadcast(false, EnemyPos);
 }
 
 void ACombatManager::PushCard(uint8 cardnum, uint8 dir)
@@ -81,15 +86,15 @@ void ACombatManager::SetDeck() // ÇÃ·¹ÀÌ¾î - Àû »çÀÌÀÇ Ä«µåµé º¸°í ¼ø¼­ ÇÏ³ª·Î Ç
 		const int32 PP = Priority(PlayerCard.Type);
 		const int32 EP = Priority(EnemyCard.Type);
 
-        if (PP >= EP)
+        if (PP >= EP) // ÇÃ·¹ÀÌ¾î ¿ì¼±
         {
-            Deck.Add(PlayerCard);
-			Deck.Add(EnemyCard);
+            Deck.Add({ PlayerCard, true });
+            Deck.Add({ EnemyCard, false });
         }
-        else if (PP < EP)
+        else if (PP < EP) // Àû ¿ì¼±
         {
-            Deck.Add(EnemyCard);
-            Deck.Add(PlayerCard);
+            Deck.Add({ EnemyCard, false });
+            Deck.Add({ PlayerCard, true });
         }
     }
 }
@@ -100,7 +105,48 @@ void ACombatManager::ActiveAction()
     if (CurDeckIdx >= Deck.Num())
         return;
 
-    const FActionCard& Top = Deck[CurDeckIdx];
+    TPair<FActionCard, bool> Top = Deck[CurDeckIdx];
+    FActionCard Card = Top.Key;
+	bool bIsPlayer = Top.Value;
+
+    
+    switch (Card.Type)
+    {
+    case EActionType::Defend:
+    {
+        // ¹æ¾î ÄÑ±â
+        if (true == bIsPlayer) bPlayerBlocking = true;
+        else bEnemyBlocking = true;
+        break;
+    }
+    case EActionType::Attack:
+    {
+        // ¸¸¾àxÃàÀ¸·Î ÇÑÄ­ ¾Õ¿¡ ÀûÀÌ ÀÖ´Ù¸é °ø°Ý
+        if (true == bIsPlayer) // ÇÃ·¹ÀÌ¾î ÅÏ
+        {
+            if (true != bEnemyBlocking) // ÀûÀÌ ¹æ¾îÁßÀÌ ¾Æ´Ô
+            {
+                if (EnemyPos.X == PlayerPos.X + 1 && EnemyPos.Y == PlayerPos.Y) // °ø°Ý ¼º°ø
+                {
+                    
+                }
+            }
+        }
+        else
+        {
+
+        }
+
+
+        break;
+    }
+    case EActionType::Move:
+    {
+        // »óÇÏÁÂ¿ì È®ÀÎÇØ¼­ ÀÌµ¿...
+    }
+    }
+
+    
 
 
     // µ¦À» ¸ðµÎ ¼Ò¸ðÇßÀ¸¸é ´ÙÀ½ ÅÏ ÁØºñ

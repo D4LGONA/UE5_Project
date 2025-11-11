@@ -81,7 +81,7 @@ public:
 
     // 카드 선택 페이즈 ----------------------------------------
     UFUNCTION(BlueprintCallable)
-    void PushCard(uint8 cardnum, uint8 dir);
+    void PushCard(EActionType cardnum, EDir4 dir);
 
 private:
     // 데이터관리 -> 턴마다 초기화해줘야 함

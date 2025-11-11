@@ -41,11 +41,11 @@ void ACombatManager::InitBoard()
     OnUnitMoved.Broadcast(false, EnemyPos);
 }
 
-void ACombatManager::PushCard(uint8 cardnum, uint8 dir)
+void ACombatManager::PushCard(EActionType cardnum, EDir4 dir)
 {
     // 카드 추가
-    PlayerCards[CurCardNum].Type = static_cast<EActionType>(cardnum);
-    PlayerCards[CurCardNum].Dir = static_cast<EDir4>(dir);
+    PlayerCards[CurCardNum].Type = cardnum;
+    PlayerCards[CurCardNum].Dir = dir;
     CurCardNum++;
 
     // 카드 넘어갔으면 

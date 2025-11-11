@@ -2,6 +2,7 @@
 #include "Kismet/KismetSystemLibrary.h"   // 선택: 로그용
 #include "Kismet/GameplayStatics.h"       // 선택: 유틸
 
+
 ACombatManager::ACombatManager()
 {
     // 전투 로직은 이벤트 드리븐으로 갈 거라, 틱은 기본 꺼둠
@@ -29,13 +30,8 @@ void ACombatManager::Tick(float DeltaTime)
     // 현재는 사용 안 함(연출 딜레이/타이머 없이 즉시 처리 예정)
 }
 
-void ACombatManager::InitBoard(int32 InSizeX, int32 InSizeY)
+void ACombatManager::InitBoard()
 {
-    BoardSizeX = FMath::Max(2, InSizeX);
-    BoardSizeY = FMath::Max(1, InSizeY);
-
-    const int32 MidY = BoardSizeY / 2;
-
     // 좌표기준 -> 좌하단(0, 0)
     PlayerPos = { 0, 1 };
     EnemyPos = { 3, 1 };
@@ -58,6 +54,42 @@ void ACombatManager::PushCard(uint8 cardnum, uint8 dir)
         // 전투 페이즈로 전환
 		Phase = ECombatPhase::Action;
     }
+}
+
+bool ACombatManager::IsInsideBoard(const FIntPoint& P) const
+{
+    return (P.X >= 0 && P.X < BOARDWIDTH &&
+        P.Y >= 0 && P.Y < BOARDHEIGHT);
+}
+
+void ACombatManager::ApplyDamage(bool IsPlayer)
+{
+	ASpine_EntityBase* Attacker = IsPlayer ? PlayerPawn : EnemyPawn;
+	ASpine_EntityBase* Defender = IsPlayer ? EnemyPawn : PlayerPawn;
+
+    if (true == Defender->Stat.DEF) // 방어
+    {
+        Defender->Stat.DEF = false;
+        return;
+	}
+
+    Defender->Stat.HP -= Attacker->Stat.ATK; // 공격당함
+    if (Defender->Stat.HP < 0)
+        Defender->Stat.HP = 0;
+
+	OnHit.Broadcast(IsPlayer, !IsPlayer, Defender->Stat.HP);
+}
+
+FIntPoint ACombatManager::GetDir(const FActionCard& InCard, bool bOwnerIsPlayer) const
+{
+    switch (InCard.Dir)
+    {
+    case EDir4::Up:    return FIntPoint(0, -1);
+    case EDir4::Down:  return FIntPoint(0, 1);
+    case EDir4::Left:  return FIntPoint(-1, 0);
+    case EDir4::Right: return FIntPoint(1, 0);
+    }
+	return FIntPoint(0, 0);
 }
 
 void ACombatManager::SetDeck() // 플레이어 - 적 사이의 카드들 보고 순서 하나로 합치는 것
@@ -108,46 +140,78 @@ void ACombatManager::ActiveAction()
     TPair<FActionCard, bool> Top = Deck[CurDeckIdx];
     FActionCard Card = Top.Key;
 	bool bIsPlayer = Top.Value;
-
     
     switch (Card.Type)
     {
     case EActionType::Defend:
     {
         // 방어 켜기
-        if (true == bIsPlayer) bPlayerBlocking = true;
-        else bEnemyBlocking = true;
+        if (true == bIsPlayer) PlayerPawn->Stat.DEF = true;
+        else EnemyPawn->Stat.DEF = true;
         break;
     }
     case EActionType::Attack:
     {
-        // 만약x축으로 한칸 앞에 적이 있다면 공격
-        if (true == bIsPlayer) // 플레이어 턴
+        if (true == bIsPlayer) // 플레이어의 턴
         {
-            if (true != bEnemyBlocking) // 적이 방어중이 아님
+            switch (Card.Dir)
             {
-                if (EnemyPos.X == PlayerPos.X + 1 && EnemyPos.Y == PlayerPos.Y) // 공격 성공
-                {
-                    
-                }
+            case EDir4::Up:
+                if (EnemyPos.Y == PlayerPos.Y - 1)
+                    ApplyDamage(bIsPlayer);
+                break;
+
+            case EDir4::Down:
+                if (EnemyPos.Y == PlayerPos.Y + 1)
+                    ApplyDamage(bIsPlayer);
+                break;
+
+            case EDir4::Left:
+                // 왼쪽 1칸
+                if (EnemyPos.X == PlayerPos.X - 1)
+                    ApplyDamage(bIsPlayer);
+                break;
+
+            case EDir4::Right:
+                if (EnemyPos.X == PlayerPos.X + 1 || EnemyPos.X == PlayerPos.X + 2)
+                    ApplyDamage(bIsPlayer);
+                break;
+
             }
         }
-        else
+        else // 적의 턴
         {
-
+            switch (EnemyPawn->GetAtkType())
+            {
+            case EAtkType::Tutorial:
+                break;
+            case EAtkType::Phase1:
+                break;
+            case EAtkType::Phase2:
+                break;
+            }
         }
-
-
         break;
     }
     case EActionType::Move:
     {
-        // 상하좌우 확인해서 이동...
+        FPos* MyPos = nullptr;
+        FPos OtherPos;
+
+        if (bIsPlayer)
+        {
+            MyPos = &PlayerPos;
+            OtherPos = EnemyPos;
+        }
+        else
+        {
+            MyPos = &EnemyPos;
+            OtherPos = PlayerPos;
+        }
+		EntityMove(*MyPos, OtherPos, Card);
+        break;
     }
     }
-
-    
-
 
     // 덱을 모두 소모했으면 다음 턴 준비
     if (CurDeckIdx >= Deck.Num())
@@ -156,10 +220,146 @@ void ACombatManager::ActiveAction()
     }
 }
 
-void ACombatManager::Setup()
+void ACombatManager::EntityMove(FPos& MyPos, FPos& OtherPos, FActionCard& Card)
 {
-    // 전투 진입 시 호출: 보통 InitBoard 이후에 불림
-    // 여기서는 최소로, 턴 초기화만 수행
+    FPos NewPos = MyPos;
+
+    if (Card.Dir == EDir4::Up)
+        NewPos.Y -= 1;
+    else if (Card.Dir == EDir4::Down)
+        NewPos.Y += 1;
+    else if (Card.Dir == EDir4::Left)
+        NewPos.X -= 1;
+    else if (Card.Dir == EDir4::Right)
+        NewPos.X += 1;
+
+    if (NewPos.X < 0 || NewPos.X > 3 || NewPos.Y < 0 || NewPos.Y > 2) return;
+
+    // 상대 위치와 겹치면 이동 X
+    if (NewPos.X == OtherPos.X && NewPos.Y == OtherPos.Y) return;
+
+    // 최종 적용
+    MyPos = NewPos;
+}
+
+void ACombatManager::EnemySetup(EAtkType Type) // 적 카드넣는부분
+{
+    if (Type == EAtkType::Tutorial)
+    {
+        // 1) 이동 카드
+        EDir4 MoveDir = CalcTutorialMoveDir();
+        if (MoveDir != EDir4::None)
+        {
+            FActionCard& MoveCard = EnemyCards[0];
+            MoveCard.Type = EActionType::Move;
+            MoveCard.Dir = MoveDir;
+        }
+
+        // 2) 공격 카드
+        EDir4 AtkDir = CalcTutorialAttackDir();
+
+        FActionCard& AtkCard = EnemyCards[1];
+        AtkCard.Type = EActionType::Attack;
+        AtkCard.Dir = AtkDir;
+
+        // 3) 방어 카드
+        FActionCard& DefCard = EnemyCards[2];
+        DefCard.Type = EActionType::Defend;
+        DefCard.Dir = EDir4::None;
+    }
+}
+
+EDir4 ACombatManager::CalcTutorialMoveDir() const
+{
+    int32 DX = PlayerPos.X - EnemyPos.X;
+    int32 DY = PlayerPos.Y - EnemyPos.Y;
+
+    int32 AbsDX = DX;
+    if (AbsDX < 0)
+    {
+        AbsDX = -AbsDX;
+    }
+
+    int32 AbsDY = DY;
+    if (AbsDY < 0)
+    {
+        AbsDY = -AbsDY;
+    }
+
+    // 이미 인접(맨해튼 거리 1 이하)이면 이동 안 함
+    if (AbsDX + AbsDY <= 1)
+    {
+        return EDir4::None; // 없으면 만들거나, 그냥 이동카드 안 넣도록 처리
+    }
+
+    // 대각선: X축(좌우) 먼저 접근
+    if (DX != 0 && DY != 0)
+    {
+        if (DX > 0)
+        {
+            return EDir4::Right;
+        }
+        else
+        {
+            return EDir4::Left;
+        }
+    }
+
+    // 수평 정렬(Y 같음) → 좌우로 접근
+    if (DY == 0 && DX != 0)
+    {
+        if (DX > 0)
+        {
+            return EDir4::Right;
+        }
+        else
+        {
+            return EDir4::Left;
+        }
+    }
+
+    // 수직 정렬(X 같음) → 상하로 접근
+    if (DX == 0 && DY != 0)
+    {
+        if (DY > 0)
+        {
+            return EDir4::Down;
+        }
+        else
+        {
+            return EDir4::Up;
+        }
+    }
+
+    return EDir4::None;
+}
+
+EDir4 ACombatManager::CalcTutorialAttackDir() const
+{
+    // 같은 줄이면 실제 좌/우 방향
+    if (PlayerPos.Y == EnemyPos.Y)
+    {
+        if (PlayerPos.X < EnemyPos.X)
+        {
+            return EDir4::Left;
+        }
+        if (PlayerPos.X > EnemyPos.X)
+        {
+            return EDir4::Right;
+        }
+
+        // 같은 칸이면 튜토리얼용으로 Right 고정
+        return EDir4::Right;
+    }
+
+    // 위/아래에 있으면 규칙상 무조건 Right
+    return EDir4::Right;
+}
+
+void ACombatManager::Setup(ASpine_EntityBase* Player, AEnemy* Enemy)
+{
+    PlayerPawn = Player;
+    EnemyPawn = Enemy;
     ResetTurn();
 }
 

@@ -13,11 +13,13 @@ struct FCharacterStats
 {
 	GENERATED_BODY()
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
-	int32 MaxHP = 100;
+	int32 MaxHP = 100; // 100 고정
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
-	int32 CurrentHP = 100;
+	int32 HP = 100;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
-	int32 AttackPower = 100;
+	int32 ATK = 25; // 고정값 -> 나 25, 적 40
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
+	bool DEF = false; // 방어를 했는지에 대한 변수인 듯
 };
 
 
@@ -57,6 +59,8 @@ public:
 	/** 지금 이동 중인지(BP에서 쓰기 편하게) */
 	UFUNCTION(BlueprintPure, Category = "Movement")
 	bool IsMoving() const { return destNode != nullptr; }
+
+	
 
 	/** 도착 알림 이벤트 (자식 BP에서 구현해서 받기) */
 	UFUNCTION(BlueprintImplementableEvent, Category = "Movement")

@@ -2,10 +2,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Spine_EntityBase.h"
 #include "GameFramework/Actor.h"
+#include "Enemy.h"
 #include "CombatManager.generated.h"
 
 constexpr short MAX_CARDS = 3;
+constexpr int32 BOARDWIDTH = 4;
+constexpr int32 BOARDHEIGHT = 3;
 
 class AActor; // 플레이어/적 액터 타입 자유롭게
 
@@ -54,16 +58,21 @@ protected:
 public:
     virtual void Tick(float DeltaTime) override;
 
+    UPROPERTY() // 굳이 이렇게 무겁게 들고 있어야 할까 싶네..
+    ASpine_EntityBase* PlayerPawn;
+
+    UPROPERTY()
+    AEnemy* EnemyPawn;
+
+
     // === 설정 ===
     UFUNCTION(BlueprintCallable)
-    void Setup(); // 초기화 함수, 전투 진입시에 호출
+    void Setup(ASpine_EntityBase* Player, AEnemy* Enemy); // 초기화 함수, 전투 진입시에 호출
     void ResetTurn(); // 턴 초기화.
-    void InitBoard(int32 InSizeX = 4, int32 InSizeY = 3);
+    void InitBoard();
 
     // === 읽기 ===
     UFUNCTION(BlueprintPure) ECombatPhase GetPhase() const { return Phase; }
-    UFUNCTION(BlueprintPure) int32 GetBoardSizeX() const { return BoardSizeX; }
-    UFUNCTION(BlueprintPure) int32 GetBoardSizeY() const { return BoardSizeY; }
 
     // === 이벤트(나중에 UI에서 바인딩) ===
     UPROPERTY(BlueprintAssignable) FOnPhaseChanged OnPhaseChanged;
@@ -85,21 +94,22 @@ private:
 	FPos PlayerPos;
 	FPos EnemyPos;
 
-    // 방어 상태 & 소비 여부
-    bool bPlayerBlocking = false;
-    bool bEnemyBlocking = false;
-    bool bPlayerBlockConsumed = false; // 해당 턴에 방어로 공격을 막았는지
-    bool bEnemyBlockConsumed = false;
-
+    bool IsInsideBoard(const FIntPoint& P) const;
+    void ApplyDamage(bool IsPlayer); // 딜넣는함수
+    FIntPoint GetDir(const FActionCard& InCard, bool bOwnerIsPlayer) const;
 
     void SetDeck();
 
     void ActiveAction();
 
-    // 최소 상태(보드 크기/페이즈만). 유닛/로드아웃은 다음 단계에서 추가.
-    UPROPERTY(EditAnywhere, Category = "Board") int32 BoardSizeX = 4;
-    UPROPERTY(EditAnywhere, Category = "Board") int32 BoardSizeY = 3;
+    void EntityMove(FPos& MyPos, FPos& OtherPos, FActionCard& Card);
 
-    UPROPERTY(VisibleAnywhere, Category = "State") ECombatPhase Phase = ECombatPhase::Prepare;
+    // 적 AI
+    void EnemySetup(EAtkType Type);
+    EDir4 CalcTutorialMoveDir() const;
+    EDir4 CalcTutorialAttackDir() const;
+
+    UPROPERTY(VisibleAnywhere, Category = "State") 
+    ECombatPhase Phase = ECombatPhase::Prepare;
 };
 

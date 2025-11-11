@@ -39,6 +39,11 @@ void AEnemy::InitEnemy(AMapNode* InStartNode)
     StartNode = InStartNode;
     curNode = StartNode;
     AllowedNodes = GetNodesWithinDistance(StartNode, 2);
+    // 값을 세팅하는 부분
+    Stat.MaxHP = 150;
+	Stat.HP = Stat.MaxHP;
+    Stat.ATK = 40;
+    Stat.DEF = false;
 }
 
 void AEnemy::BeginPlay()

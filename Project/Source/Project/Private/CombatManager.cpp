@@ -7,6 +7,8 @@ ACombatManager::ACombatManager()
 {
     // ¿¸≈ı ∑Œ¡˜¿∫ ¿Ã∫•∆Æ µÂ∏Æ∫Ï¿∏∑Œ ∞• ∞≈∂Û, ∆Ω¿∫ ±‚∫ª ≤®µ“
     PrimaryActorTick.bCanEverTick = false;
+    PlayerCards.SetNum(3);
+    EnemyCards.SetNum(3);
 }
 
 void ACombatManager::BeginPlay()
@@ -24,6 +26,11 @@ void ACombatManager::BeginPlay()
     // (¿œπ›¿˚¿∏∑Œ¥¬ ø‹∫Œø°º≠ ¿¸≈ı ¡¯¿‘ Ω√¡°ø° Setup¿ª »£√‚«œ¥¬ ∞… ±«¿Â)
 }
 
+// æ◊º« ∆‰¿Ã¡Ó µø¿€
+void ACombatManager::ActionPhase()
+{
+}
+
 void ACombatManager::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
@@ -35,10 +42,6 @@ void ACombatManager::InitBoard()
     // ¡¬«•±‚¡ÿ -> ¡¬«œ¥‹(0, 0)
     PlayerPos = { 0, 1 };
     EnemyPos = { 3, 1 };
-
-    // √ ±‚ ¿ßƒ° ∫Í∑ŒµÂƒ≥Ω∫∆Æ -> ¿Ã∞…∑Œ ¿ÃπÃ¡ˆ ∂ÁøÏ±‚.
-    OnUnitMoved.Broadcast(true, PlayerPos);
-    OnUnitMoved.Broadcast(false, EnemyPos);
 }
 
 void ACombatManager::PushCard(EActionType cardnum, EDir4 dir)
@@ -47,13 +50,6 @@ void ACombatManager::PushCard(EActionType cardnum, EDir4 dir)
     PlayerCards[CurCardNum].Type = cardnum;
     PlayerCards[CurCardNum].Dir = dir;
     CurCardNum++;
-
-    // ƒ´µÂ ≥—æÓ∞¨¿∏∏È 
-    if (CurCardNum >= MAX_CARDS)
-    {   
-        // ¿¸≈ı ∆‰¿Ã¡Ó∑Œ ¿¸»Ø
-		Phase = ECombatPhase::Action;
-    }
 }
 
 bool ACombatManager::IsInsideBoard(const FIntPoint& P) const
@@ -75,21 +71,16 @@ void ACombatManager::ApplyDamage(bool IsPlayer)
 
     Defender->Stat.HP -= Attacker->Stat.ATK; // ∞¯∞›¥Á«‘
     if (Defender->Stat.HP < 0)
-        Defender->Stat.HP = 0;
-
-	OnHit.Broadcast(IsPlayer, !IsPlayer, Defender->Stat.HP);
-}
-
-FIntPoint ACombatManager::GetDir(const FActionCard& InCard, bool bOwnerIsPlayer) const
-{
-    switch (InCard.Dir)
     {
-    case EDir4::Up:    return FIntPoint(0, -1);
-    case EDir4::Down:  return FIntPoint(0, 1);
-    case EDir4::Left:  return FIntPoint(-1, 0);
-    case EDir4::Right: return FIntPoint(1, 0);
+        Defender->Stat.HP = 0;
+        if (Defender == PlayerPawn)
+            OnPhaseChanged.Broadcast(ECombatPhase::Defeat);
+        else
+            OnPhaseChanged.Broadcast(ECombatPhase::Victory);
     }
-	return FIntPoint(0, 0);
+
+    OnHPChanged.Broadcast(IsPlayer, PlayerPawn->Stat.MaxHP, PlayerPawn->Stat.HP);
+    OnHPChanged.Broadcast(!IsPlayer, EnemyPawn->Stat.MaxHP, EnemyPawn->Stat.HP);
 }
 
 void ACombatManager::SetDeck() // «√∑π¿ÃæÓ - ¿˚ ªÁ¿Ã¿« ƒ´µÂµÈ ∫∏∞Ì º¯º≠ «œ≥™∑Œ «’ƒ°¥¬ ∞Õ
@@ -131,6 +122,22 @@ void ACombatManager::SetDeck() // «√∑π¿ÃæÓ - ¿˚ ªÁ¿Ã¿« ƒ´µÂµÈ ∫∏∞Ì º¯º≠ «œ≥™∑Œ «
     }
 }
 
+void ACombatManager::StepAction()
+{
+    if (Phase != ECombatPhase::Action) return;
+
+    // ≥≤¿∫ ƒ´µÂ æ¯¿∏∏È ¥Ÿ¿Ω ≈œ
+    if (CurDeckIdx >= Deck.Num()) { ResetTurn(); return; }
+
+    ActiveAction();   
+
+    CurDeckIdx++;     // ¥Ÿ¿Ω ¿Â¿∏∑Œ
+    if (CurDeckIdx >= Deck.Num())
+    {
+        ResetTurn();  // ≈œ ¡æ∑· °Ê Prepare∑Œ ∫π±Õ
+    }
+}
+
 void ACombatManager::ActiveAction()
 {
     // Ω««‡ ∞°¥…«— ƒ´µÂ∞° æ¯¿∏∏È ¡æ∑·
@@ -157,12 +164,12 @@ void ACombatManager::ActiveAction()
             switch (Card.Dir)
             {
             case EDir4::Up:
-                if (EnemyPos.Y == PlayerPos.Y - 1)
+                if (EnemyPos.Y == PlayerPos.Y + 1)
                     ApplyDamage(bIsPlayer);
                 break;
 
             case EDir4::Down:
-                if (EnemyPos.Y == PlayerPos.Y + 1)
+                if (EnemyPos.Y == PlayerPos.Y - 1)
                     ApplyDamage(bIsPlayer);
                 break;
 
@@ -176,8 +183,8 @@ void ACombatManager::ActiveAction()
                 if (EnemyPos.X == PlayerPos.X + 1 || EnemyPos.X == PlayerPos.X + 2)
                     ApplyDamage(bIsPlayer);
                 break;
-
             }
+
         }
         else // ¿˚¿« ≈œ
         {
@@ -225,9 +232,9 @@ void ACombatManager::EntityMove(FPos& MyPos, FPos& OtherPos, FActionCard& Card)
     FPos NewPos = MyPos;
 
     if (Card.Dir == EDir4::Up)
-        NewPos.Y -= 1;
-    else if (Card.Dir == EDir4::Down)
         NewPos.Y += 1;
+    else if (Card.Dir == EDir4::Down)
+        NewPos.Y -= 1;
     else if (Card.Dir == EDir4::Left)
         NewPos.X -= 1;
     else if (Card.Dir == EDir4::Right)
@@ -240,11 +247,12 @@ void ACombatManager::EntityMove(FPos& MyPos, FPos& OtherPos, FActionCard& Card)
 
     // √÷¡æ ¿˚øÎ
     MyPos = NewPos;
+    OnUnitMoved.Broadcast();
 }
 
-void ACombatManager::EnemySetup(EAtkType Type) // ¿˚ ƒ´µÂ≥÷¥¬∫Œ∫–
+void ACombatManager::EnemySetup() // ¿˚ ƒ´µÂ≥÷¥¬∫Œ∫–
 {
-    if (Type == EAtkType::Tutorial)
+    if (EnemyPawn->GetAtkType() == EAtkType::Tutorial)
     {
         // 1) ¿Ãµø ƒ´µÂ
         EDir4 MoveDir = CalcTutorialMoveDir();
@@ -267,6 +275,13 @@ void ACombatManager::EnemySetup(EAtkType Type) // ¿˚ ƒ´µÂ≥÷¥¬∫Œ∫–
         DefCard.Type = EActionType::Defend;
         DefCard.Dir = EDir4::None;
     }
+
+    // µ¶¿∏∑Œ ¡¶¿€
+    SetDeck();
+
+    // ¿˚ ºº∆√ »ƒ ≈œ ≥—±Ë
+    Phase = ECombatPhase::Action;
+    OnPhaseChanged.Broadcast(Phase);
 }
 
 EDir4 ACombatManager::CalcTutorialMoveDir() const
@@ -360,6 +375,7 @@ void ACombatManager::Setup(ASpine_EntityBase* Player, AEnemy* Enemy)
 {
     PlayerPawn = Player;
     EnemyPawn = Enemy;
+    InitBoard();
     ResetTurn();
 }
 
@@ -368,10 +384,6 @@ void ACombatManager::ResetTurn()
     // ¡ÿ∫Ò ∆‰¿Ã¡Ó∑Œ ¿¸»Ø (ƒ´µÂ/πÊ«‚¿ª πﬁ¥¬ ªÛ≈¬)
     Phase = ECombatPhase::Prepare;
     OnPhaseChanged.Broadcast(Phase);
-
-#if !(UE_BUILD_SHIPPING || UE_BUILD_TEST)
-    UKismetSystemLibrary::PrintString(this, TEXT("[Combat] Phase -> Prepare"), true, true, FLinearColor::Green, 1.5f);
-#endif
 
     // ¥Ÿ¿Ω ¥‹∞Ëø°º≠:
     // - ∞°µÂ √ ±‚»≠

@@ -38,11 +38,13 @@ struct FActionCard { // 카드정보
     UPROPERTY(EditAnywhere, BlueprintReadWrite) EDir4 Dir = EDir4::None; // Attack/Move에서 사용
 };
 
-// ===== 델리게이트 (UI용) =====
+// --- delegates ---
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnUnitMoved);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnHPChanged, bool, bIsPlayer, int32, OldHP, int32, NewHP);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPhaseChanged, ECombatPhase, NewPhase);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnDoAction, EActionType, Action, bool, bIsPlayer);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnUnitMoved, bool, bIsPlayer, FPos, NewPos);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnHit, bool, bAttackerIsPlayer, bool, bDefenderIsPlayer, int32, DefenderNewHP);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCombatEnded, bool, bPlayerWin);
+
+
 
 UCLASS()
 class PROJECT_API ACombatManager : public AActor
@@ -56,6 +58,17 @@ protected:
     virtual void BeginPlay() override;
 
 public:
+    // --- events (BlueprintAssignable) ---
+    UPROPERTY(BlueprintAssignable) FOnUnitMoved    OnUnitMoved;
+    UPROPERTY(BlueprintAssignable) FOnHPChanged    OnHPChanged;
+    UPROPERTY(BlueprintAssignable) FOnPhaseChanged OnPhaseChanged;
+    UPROPERTY(BlueprintAssignable) FOnCombatEnded  OnCombatEnded;
+
+
+    // --- 각 페이즈 별 동작 ---
+    void ActionPhase(); // 액션 페이즈 동작
+
+
     virtual void Tick(float DeltaTime) override;
 
     UPROPERTY() // 굳이 이렇게 무겁게 들고 있어야 할까 싶네..
@@ -74,19 +87,24 @@ public:
     // === 읽기 ===
     UFUNCTION(BlueprintPure) ECombatPhase GetPhase() const { return Phase; }
 
-    // === 이벤트(나중에 UI에서 바인딩) ===
-    UPROPERTY(BlueprintAssignable) FOnPhaseChanged OnPhaseChanged;
-    UPROPERTY(BlueprintAssignable) FOnUnitMoved   OnUnitMoved;
-    UPROPERTY(BlueprintAssignable) FOnHit         OnHit;
-
     // 카드 선택 페이즈 ----------------------------------------
     UFUNCTION(BlueprintCallable)
     void PushCard(EActionType cardnum, EDir4 dir);
 
+    UFUNCTION(BlueprintCallable)
+    TArray<FActionCard>& GetEnemyCard()  { return EnemyCards; };
+
+    UFUNCTION(BlueprintCallable)
+    void EnemySetup();
+
+    UFUNCTION(BlueprintCallable)
+    void StepAction();
+
 private:
+
     // 데이터관리 -> 턴마다 초기화해줘야 함
-    FActionCard PlayerCards[MAX_CARDS];
-    FActionCard EnemyCards[MAX_CARDS];
+    TArray<FActionCard> PlayerCards;
+    TArray<FActionCard> EnemyCards;
     TArray<TPair<FActionCard, bool>> Deck; // 이번 발동순서대로
     int CurCardNum = 0; // 등록한 카드 개수
     int CurDeckIdx = 0; // 발동할 것
@@ -96,7 +114,6 @@ private:
 
     bool IsInsideBoard(const FIntPoint& P) const;
     void ApplyDamage(bool IsPlayer); // 딜넣는함수
-    FIntPoint GetDir(const FActionCard& InCard, bool bOwnerIsPlayer) const;
 
     void SetDeck();
 
@@ -105,11 +122,17 @@ private:
     void EntityMove(FPos& MyPos, FPos& OtherPos, FActionCard& Card);
 
     // 적 AI
-    void EnemySetup(EAtkType Type);
+ 
     EDir4 CalcTutorialMoveDir() const;
     EDir4 CalcTutorialAttackDir() const;
 
     UPROPERTY(VisibleAnywhere, Category = "State") 
     ECombatPhase Phase = ECombatPhase::Prepare;
+
+public: // getter - setter
+    UFUNCTION(BlueprintCallable)
+    FPos& GetPlayerPos() { return PlayerPos; }
+    UFUNCTION(BlueprintCallable)
+    FPos& GetEnemyPos() { return EnemyPos; }
 };
 

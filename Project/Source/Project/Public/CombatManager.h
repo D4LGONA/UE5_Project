@@ -125,6 +125,8 @@ private:
  
     EDir4 CalcTutorialMoveDir() const;
     EDir4 CalcTutorialAttackDir() const;
+    void TutorialAttack(bool IsPlayer);
+
 
     UPROPERTY(VisibleAnywhere, Category = "State") 
     ECombatPhase Phase = ECombatPhase::Prepare;

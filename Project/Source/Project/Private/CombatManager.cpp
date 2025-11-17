@@ -70,7 +70,7 @@ void ACombatManager::ApplyDamage(bool IsPlayer)
 	}
 
     Defender->Stat.HP -= Attacker->Stat.ATK; // 공격당함
-    if (Defender->Stat.HP < 0)
+    if (Defender->Stat.HP <= 0)
     {
         Defender->Stat.HP = 0;
         if (Defender == PlayerPawn)
@@ -79,8 +79,8 @@ void ACombatManager::ApplyDamage(bool IsPlayer)
             OnPhaseChanged.Broadcast(ECombatPhase::Victory);
     }
 
-    OnHPChanged.Broadcast(IsPlayer, PlayerPawn->Stat.MaxHP, PlayerPawn->Stat.HP);
-    OnHPChanged.Broadcast(!IsPlayer, EnemyPawn->Stat.MaxHP, EnemyPawn->Stat.HP);
+    OnHPChanged.Broadcast(true, PlayerPawn->Stat.MaxHP, PlayerPawn->Stat.HP);
+    OnHPChanged.Broadcast(false, EnemyPawn->Stat.MaxHP, EnemyPawn->Stat.HP);
 }
 
 void ACombatManager::SetDeck() // 플레이어 - 적 사이의 카드들 보고 순서 하나로 합치는 것
@@ -191,6 +191,7 @@ void ACombatManager::ActiveAction()
             switch (EnemyPawn->GetAtkType())
             {
             case EAtkType::Tutorial:
+                TutorialAttack(bIsPlayer);
                 break;
             case EAtkType::Phase1:
                 break;
@@ -369,6 +370,15 @@ EDir4 ACombatManager::CalcTutorialAttackDir() const
 
     // 위/아래에 있으면 규칙상 무조건 Right
     return EDir4::Right;
+}
+
+// 튜토리얼 공격 처리
+void ACombatManager::TutorialAttack(bool IsPlayer)
+{
+    if (PlayerPos.Y == EnemyPos.Y && PlayerPos.X == EnemyPos.X - 1)
+    {
+        ApplyDamage(IsPlayer); 
+    }
 }
 
 void ACombatManager::Setup(ASpine_EntityBase* Player, AEnemy* Enemy)

@@ -41,7 +41,9 @@ struct FActionCard { // 카드정보
 // --- delegates ---
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnUnitMoved);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnHPChanged, bool, bIsPlayer, int32, OldHP, int32, NewHP);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnImageChange, bool, bIsPlayer, EActionType, Action);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPhaseChanged, ECombatPhase, NewPhase);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAttackedPos, const TArray<FPos>&, Positions);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCombatEnded, bool, bPlayerWin);
 
 
@@ -63,6 +65,8 @@ public:
     UPROPERTY(BlueprintAssignable) FOnHPChanged    OnHPChanged;
     UPROPERTY(BlueprintAssignable) FOnPhaseChanged OnPhaseChanged;
     UPROPERTY(BlueprintAssignable) FOnCombatEnded  OnCombatEnded;
+    UPROPERTY(BlueprintAssignable) FOnImageChange  OnImageChange;
+    UPROPERTY(BlueprintAssignable) FOnAttackedPos  OnAttackedPos;
 
 
     // --- 각 페이즈 별 동작 ---
@@ -101,6 +105,8 @@ public:
     void StepAction();
 
 private:
+
+    TArray<FPos> AttackedPos;
 
     // 데이터관리 -> 턴마다 초기화해줘야 함
     TArray<FActionCard> PlayerCards;

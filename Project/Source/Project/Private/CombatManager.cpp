@@ -125,24 +125,18 @@ void ACombatManager::SetDeck() // ÇÃ·¹ÀÌ¾î - Àû »çÀÌÀÇ Ä«µåµé º¸°í ¼ø¼­ ÇÏ³ª·Î Ç
 void ACombatManager::StepAction()
 {
     if (Phase != ECombatPhase::Action) return;
-
-    // ³²Àº Ä«µå ¾øÀ¸¸é ´ÙÀ½ ÅÏ
-    if (CurDeckIdx >= Deck.Num()) { ResetTurn(); return; }
-
     ActiveAction();   
-
     CurDeckIdx++;     // ´ÙÀ½ ÀåÀ¸·Î
-    if (CurDeckIdx >= Deck.Num())
-    {
-        ResetTurn();  // ÅÏ Á¾·á ¡æ Prepare·Î º¹±Í
-    }
 }
 
 void ACombatManager::ActiveAction()
 {
-    // ½ÇÇà °¡´ÉÇÑ Ä«µå°¡ ¾øÀ¸¸é Á¾·á
+    // µ¦À» ¸ğµÎ ¼Ò¸ğÇßÀ¸¸é ´ÙÀ½ ÅÏ ÁØºñ
     if (CurDeckIdx >= Deck.Num())
+    {
+        ResetTurn();
         return;
+    }
 
     TPair<FActionCard, bool> Top = Deck[CurDeckIdx];
     FActionCard Card = Top.Key;
@@ -155,6 +149,7 @@ void ACombatManager::ActiveAction()
         // ¹æ¾î ÄÑ±â
         if (true == bIsPlayer) PlayerPawn->Stat.DEF = true;
         else EnemyPawn->Stat.DEF = true;
+		OnImageChange.Broadcast(bIsPlayer, EActionType::Defend);
         break;
     }
     case EActionType::Attack:
@@ -164,27 +159,31 @@ void ACombatManager::ActiveAction()
             switch (Card.Dir)
             {
             case EDir4::Up:
+                AttackedPos.Add({ PlayerPos.X, PlayerPos.Y + 1 });
                 if (EnemyPos.Y == PlayerPos.Y + 1)
                     ApplyDamage(bIsPlayer);
                 break;
 
             case EDir4::Down:
+                AttackedPos.Add({ PlayerPos.X, PlayerPos.Y - 1 });
                 if (EnemyPos.Y == PlayerPos.Y - 1)
                     ApplyDamage(bIsPlayer);
                 break;
 
             case EDir4::Left:
                 // ¿ŞÂÊ 1Ä­
+                AttackedPos.Add({ PlayerPos.X - 1, PlayerPos.Y });
                 if (EnemyPos.X == PlayerPos.X - 1)
                     ApplyDamage(bIsPlayer);
                 break;
 
             case EDir4::Right:
+                AttackedPos.Add({ PlayerPos.X + 1, PlayerPos.Y });
+                AttackedPos.Add({ PlayerPos.X + 2, PlayerPos.Y });
                 if (EnemyPos.X == PlayerPos.X + 1 || EnemyPos.X == PlayerPos.X + 2)
                     ApplyDamage(bIsPlayer);
                 break;
             }
-
         }
         else // ÀûÀÇ ÅÏ
         {
@@ -199,6 +198,7 @@ void ACombatManager::ActiveAction()
                 break;
             }
         }
+        OnImageChange.Broadcast(bIsPlayer, EActionType::Attack);
         break;
     }
     case EActionType::Move:
@@ -217,14 +217,25 @@ void ACombatManager::ActiveAction()
             OtherPos = PlayerPos;
         }
 		EntityMove(*MyPos, OtherPos, Card);
+        OnImageChange.Broadcast(bIsPlayer, EActionType::Move);
         break;
     }
     }
 
-    // µ¦À» ¸ğµÎ ¼Ò¸ğÇßÀ¸¸é ´ÙÀ½ ÅÏ ÁØºñ
-    if (CurDeckIdx >= Deck.Num())
+
+    if (false == AttackedPos.IsEmpty())
     {
-        ResetTurn();
+        OnAttackedPos.Broadcast(AttackedPos);
+        AttackedPos.Empty();
+    }
+
+    if (bIsPlayer)
+    {
+        EnemyPawn->Stat.DEF = false;
+    }
+    else
+    {
+        PlayerPawn->Stat.DEF = false;
     }
 }
 
@@ -375,6 +386,7 @@ EDir4 ACombatManager::CalcTutorialAttackDir() const
 // Æ©Åä¸®¾ó °ø°İ Ã³¸®
 void ACombatManager::TutorialAttack(bool IsPlayer)
 {
+    AttackedPos.Add({ EnemyPos.X - 1, EnemyPos.Y });
     if (PlayerPos.Y == EnemyPos.Y && PlayerPos.X == EnemyPos.X - 1)
     {
         ApplyDamage(IsPlayer); 
@@ -394,10 +406,6 @@ void ACombatManager::ResetTurn()
     // ÁØºñ ÆäÀÌÁî·Î ÀüÈ¯ (Ä«µå/¹æÇâÀ» ¹Ş´Â »óÅÂ)
     Phase = ECombatPhase::Prepare;
     OnPhaseChanged.Broadcast(Phase);
-
-    // ´ÙÀ½ ´Ü°è¿¡¼­:
-    // - °¡µå ÃÊ±âÈ­
-    // - ½½·Ô ÀÎµ¦½º 0À¸·Î
-    // - Àû ·Îµå¾Æ¿ô(¶Ç´Â ¿ÜºÎ Á¦°ø) ¼¼ÆÃ
-    // µîÀ» Ãß°¡ÇÒ ¿¹Á¤
+    OnImageChange.Broadcast(true, EActionType::Move);
+    OnImageChange.Broadcast(false, EActionType::Move); // ÀÌ°É idle·Î ¾²±â
 }

@@ -59,7 +59,7 @@ void UGameInstance_2D::RunEnemiesTurn()
 
     if (PendingMoves == 0)
     {
-        OnEnemiesTurnEnded(); 
+        OnEnemiesTurnEnded.Broadcast();
     }
 }
 
@@ -67,7 +67,7 @@ void UGameInstance_2D::NotifyEnemyArrived(ASpine_EntityBase* /*Enemy*/)
 {
     if (PendingMoves > 0 && --PendingMoves == 0)
     {
-        OnEnemiesTurnEnded(); 
+        OnEnemiesTurnEnded.Broadcast();
     }
 }
 

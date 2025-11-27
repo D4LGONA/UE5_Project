@@ -9,7 +9,7 @@
 class AMapNode;
 
 // 델리게이트
-
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnEnemiesTurnEnded);
 
 UCLASS()
 class PROJECT_API UGameInstance_2D : public UGameInstance
@@ -48,6 +48,7 @@ public:
     UFUNCTION(BlueprintCallable) void NotifyEnemyArrived(class ASpine_EntityBase* Enemy);
 
     // 입력 활성화/비활성화 하려고
-    UFUNCTION(BlueprintImplementableEvent) void OnEnemiesTurnEnded();
+    UPROPERTY(BlueprintAssignable)
+    FOnEnemiesTurnEnded OnEnemiesTurnEnded;
 };
 

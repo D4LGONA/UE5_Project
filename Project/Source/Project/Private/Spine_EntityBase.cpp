@@ -29,10 +29,10 @@ void ASpine_EntityBase::Tick(float DeltaTime)
 
 		// 좌우 방향
 		if (destPos.Y > curPos.Y) {
-			SetActorScale3D(FVector(1.f, -1.f, 1.f));
+			SetActorScale3D(FVector(1.f, 1.f, 1.f));
 		}
 		else if (destPos.Y < curPos.Y) {
-			SetActorScale3D(FVector(1.f, 1.f, 1.f));
+			SetActorScale3D(FVector(1.f, -1.f, 1.f));
 		}
 
 		// 이동

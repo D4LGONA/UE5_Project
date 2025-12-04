@@ -146,14 +146,15 @@ void ACombatManager::ActiveAction()
     {
     case EActionType::Defend:
     {
+		OnImageChange.Broadcast(bIsPlayer, EActionType::Defend);
         // 방어 켜기
         if (true == bIsPlayer) PlayerPawn->Stat.DEF = true;
         else EnemyPawn->Stat.DEF = true;
-		OnImageChange.Broadcast(bIsPlayer, EActionType::Defend);
         break;
     }
     case EActionType::Attack:
     {
+        OnImageChange.Broadcast(bIsPlayer, EActionType::Attack);
         if (true == bIsPlayer) // 플레이어의 턴
         {
             switch (Card.Dir)
@@ -198,11 +199,11 @@ void ACombatManager::ActiveAction()
                 break;
             }
         }
-        OnImageChange.Broadcast(bIsPlayer, EActionType::Attack);
         break;
     }
     case EActionType::Move:
     {
+        OnImageChange.Broadcast(bIsPlayer, EActionType::Move);
         FPos* MyPos = nullptr;
         FPos OtherPos;
 
@@ -217,7 +218,6 @@ void ACombatManager::ActiveAction()
             OtherPos = PlayerPos;
         }
 		EntityMove(*MyPos, OtherPos, Card);
-        OnImageChange.Broadcast(bIsPlayer, EActionType::Move);
         break;
     }
     }

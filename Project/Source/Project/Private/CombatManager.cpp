@@ -406,6 +406,4 @@ void ACombatManager::ResetTurn()
     // 준비 페이즈로 전환 (카드/방향을 받는 상태)
     Phase = ECombatPhase::Prepare;
     OnPhaseChanged.Broadcast(Phase);
-    OnImageChange.Broadcast(true, EActionType::Move);
-    OnImageChange.Broadcast(false, EActionType::Move); // 이걸 idle로 쓰기
 }

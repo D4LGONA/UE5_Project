@@ -11,6 +11,21 @@
 // 이동할 노드 찾기
 AMapNode* AEnemy::NextNode()
 {
+    AMapNode* outNode = nullptr;
+    switch (MoveType)
+    {
+    case EEnemyActionType::Stay:
+        outNode = Stay();
+        break;
+    case EEnemyActionType::Random:
+        outNode = Random();
+        break;
+    }
+    return outNode;
+}
+
+AMapNode* AEnemy::Random()
+{
     if (!curNode) return nullptr;
 
     const TArray<AMapNode*>& Neighbors = curNode->GetNeighbors();
@@ -31,6 +46,11 @@ AMapNode* AEnemy::NextNode()
     }
 
     return nullptr;
+}
+
+AMapNode* AEnemy::Stay()
+{
+    return curNode;
 }
 
 // 스폰때 호출

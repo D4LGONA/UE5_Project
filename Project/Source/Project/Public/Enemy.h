@@ -11,6 +11,13 @@
 UENUM(BlueprintType)
 enum class EAtkType : uint8 { Tutorial, Phase1, Phase2 };
 
+UENUM(BlueprintType)
+enum class EEnemyActionType : uint8
+{
+	Stay,
+	Random
+};
+
 UCLASS()
 class PROJECT_API AEnemy : public ASpine_EntityBase
 {
@@ -27,9 +34,14 @@ private:
 	UPROPERTY(EditAnywhere)
 	EAtkType AtkType = EAtkType::Tutorial; // 이 적의 공격 타입
 
+	UPROPERTY(EditAnywhere)
+	EEnemyActionType MoveType = EEnemyActionType::Stay;
+
 public:
 	UFUNCTION(BlueprintCallable)
 	AMapNode* NextNode();
+	AMapNode* Random();
+	AMapNode* Stay();
 
 	UFUNCTION(BlueprintCallable)
 	void InitEnemy(AMapNode* InStartNode);

@@ -71,6 +71,11 @@ void UGameInstance_2D::NotifyEnemyArrived(ASpine_EntityBase* /*Enemy*/)
     }
 }
 
+void UGameInstance_2D::DeleteEnemy(AEnemy* Enemy)
+{
+    Enemies.RemoveSingle(Enemy);
+}
+
 void UGameInstance_2D::Compact()
 {
     Enemies.RemoveAll([](const TWeakObjectPtr<AEnemy>& W) { return !W.IsValid(); });

@@ -33,7 +33,7 @@ public:
     UFUNCTION(BlueprintCallable)
     bool ConsumeMovePoint();  
 
-    UPROPERTY()
+    UPROPERTY(EditAnywhere)
     TArray<TWeakObjectPtr<AEnemy>> Enemies;
 
 public:
@@ -46,6 +46,7 @@ public:
     UFUNCTION(BlueprintCallable) void RunEnemiesTurn();
 
     UFUNCTION(BlueprintCallable) void NotifyEnemyArrived(class ASpine_EntityBase* Enemy);
+    UFUNCTION(BlueprintCallable) void DeleteEnemy(class AEnemy* Enemy);
 
     // 입력 활성화/비활성화 하려고
     UPROPERTY(BlueprintAssignable)

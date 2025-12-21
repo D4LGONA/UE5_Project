@@ -138,6 +138,9 @@ void ACombatManager::ActiveAction()
         return;
     }
 
+    AttackedPos.Empty();
+    OnAttackedPos.Broadcast(AttackedPos);
+
     TPair<FActionCard, bool> Top = Deck[CurDeckIdx];
     FActionCard Card = Top.Key;
 	bool bIsPlayer = Top.Value;

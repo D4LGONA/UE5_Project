@@ -15,7 +15,8 @@ public:
 
     // ∏  ¿˙¿Â
     UFUNCTION(CallInEditor, BlueprintCallable, Category = "Graph|Bake")
-    void BakeGraph();
+	void BakeGraph() { BakePlacedNodesToAsset(BakeTargetAsset); }
+
     void BakePlacedNodesToAsset(UNodeGraphData* OutAsset);
 
     UPROPERTY(EditAnywhere, Category = "Graph|Bake")

@@ -15,7 +15,12 @@ public:
 
     // ∏  ¿˙¿Â
     UFUNCTION(CallInEditor, BlueprintCallable, Category = "Graph|Bake")
-	void BakeGraph() { BakePlacedNodesToAsset(BakeTargetAsset); }
+	void BakeGraph() 
+    { 
+#ifndef WITH_EDITOR
+        BakePlacedNodesToAsset(BakeTargetAsset);
+#endif
+    }
 
     void BakePlacedNodesToAsset(UNodeGraphData* OutAsset);
 

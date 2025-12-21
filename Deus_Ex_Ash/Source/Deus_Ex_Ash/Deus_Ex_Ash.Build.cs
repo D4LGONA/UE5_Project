@@ -13,7 +13,10 @@ public class Deus_Ex_Ash : ModuleRules
             "CoreUObject", 
             "Engine", 
             "InputCore", 
-            "EnhancedInput"
+            "EnhancedInput",
+            "SpinePlugin", 
+            "Json", 
+            "JsonUtilities"
         });
 
         PrivateDependencyModuleNames.AddRange(new string[] { 

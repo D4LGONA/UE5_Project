@@ -6,7 +6,10 @@
 #include "Engine/World.h"
 #include "AssetRegistry/AssetRegistryModule.h" // (신규 생성 시 필요)
 #include "Spine_EntityBase.h"
-#include "Editor.h" 
+#if WITH_EDITOR
+#include "Editor.h"
+#endif
+
 
 AMapManager::AMapManager() {
     PrimaryActorTick.bCanEverTick = false;
@@ -190,7 +193,15 @@ void AMapManager::ClearGraph() {
     EdgeSet.Empty();
 }
 
+void AMapManager::BakeGraph()
+{
+#if WITH_EDITOR
+    BakePlacedNodesToAsset(BakeTargetAsset);
+#endif
+}
+
 void AMapManager::BuildGraph() {
+#if WITH_EDITOR
     ClearGraph();
     if (!TargetAsset || !*NodeClass) return;
 
@@ -296,6 +307,7 @@ void AMapManager::BuildGraph() {
             EdgeSet.Add(Key);
         }
     }
+#endif
 }
 
 void AMapManager::SpawnLinkOnce(int32 AId, int32 BId) {

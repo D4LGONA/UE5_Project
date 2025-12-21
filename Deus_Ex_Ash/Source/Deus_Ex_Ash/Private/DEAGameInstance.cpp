@@ -94,7 +94,6 @@ void UDEAGameInstance::RunEnemiesTurn()
 
     for (auto& W : Enemies)
     {
-        // todo: 가만히 서있는 애 제외해야 함
         auto* Next = W->NextNode();
         ++PendingMoves;
         W->SetDest(Next);

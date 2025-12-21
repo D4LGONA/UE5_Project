@@ -15,10 +15,7 @@ public:
 
     // ∏  ¿˙¿Â
     UFUNCTION(CallInEditor, BlueprintCallable, Category = "Graph|Bake")
-    void BakeGraph();
-
-    UFUNCTION(CallInEditor, BlueprintCallable, Category = "Graph|Build")
-    void BuildGraph();
+	void BakeGraph() { BakePlacedNodesToAsset(BakeTargetAsset); }
 
     void BakePlacedNodesToAsset(UNodeGraphData* OutAsset);
 
@@ -28,6 +25,9 @@ public:
     // ------------------------------------------------------------------
 
     // ∏  ∑ŒµÂ
+    UFUNCTION(CallInEditor, BlueprintCallable, Category = "Graph|Build")
+    void BuildGraph();
+
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Graph|Build")
     UNodeGraphData* TargetAsset = nullptr;
 

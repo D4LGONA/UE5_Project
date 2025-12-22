@@ -39,7 +39,7 @@ void UAS_WeaponAttributes::PostGameplayEffectExecute(const FGameplayEffectModCal
 		AActor* WeaponOwnerActor = WeaponActor ? WeaponActor->GetOwner() : nullptr;
 		ACharacterBase* WeaponOwnerCharacterBase = Cast<ACharacterBase>(WeaponOwnerActor);
 
-		if (WeaponActor && WeaponBase && WeaponOwnerActor && WeaponOwnerCharacterBase)
+		if (WeaponActor && WeaponBase && WeaponOwnerActor && WeaponOwnerCharacterBase && WeaponBase->AS_WeaponAttributes)
 		{
 			// 무기 내구도가 0인 경우
 			if (FMath::IsNearlyZero(GetDurability(), 1.0E-4F))
@@ -65,21 +65,9 @@ void UAS_WeaponAttributes::PostGameplayEffectExecute(const FGameplayEffectModCal
 					WeaponBase->bIsBroken = true;
 				}
 			}
-			float CurrentDurabilityRatio = 1.0f;
-			if (!WeaponBase)
-			{
-				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, TEXT("WeaponBase is Null"));
-			}
 
-			if (!WeaponBase->AS_WeaponAttributes)
-			{
-				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, TEXT("AS_WeaponAttributes is Null"));
-			}
-			else
-			{
-				 CurrentDurabilityRatio = WeaponBase->AS_WeaponAttributes->GetDurability() / WeaponBase->AS_WeaponAttributes->GetMaxDurability();
-			}
-
+			float CurrentDurabilityRatio = WeaponBase->AS_WeaponAttributes->GetDurability() / WeaponBase->AS_WeaponAttributes->GetMaxDurability();
+			
 			// 무기 내구도가 50% 미만인 경우 데미지 디버프
 			if (CurrentDurabilityRatio < 0.5f)
 			{
@@ -102,9 +90,9 @@ void UAS_WeaponAttributes::PostGameplayEffectExecute(const FGameplayEffectModCal
 		}
 		else
 		{
-			//
 			// null
-			//
+
+			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, TEXT("Null.."));
 		}
 	}
 }

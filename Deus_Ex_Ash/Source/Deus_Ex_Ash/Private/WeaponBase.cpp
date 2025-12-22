@@ -19,6 +19,9 @@ AWeaponBase::AWeaponBase()
 
 	CapsuleComponent = CreateDefaultSubobject<UCapsuleComponent>(TEXT("CapsuleComponent"));
 	CapsuleComponent->SetupAttachment(GetRootComponent());
+	CapsuleComponent->SetGenerateOverlapEvents(false);
+	CapsuleComponent->CanCharacterStepUpOn = ECanBeCharacterBase::ECB_No;
+	CapsuleComponent->SetCollisionProfileName(TEXT("NoCollision"));
 
 	AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
 	AS_WeaponAttributes = CreateDefaultSubobject<UAS_WeaponAttributes>(TEXT("AS_WeaponAttributes"));

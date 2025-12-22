@@ -65,8 +65,20 @@ void UAS_WeaponAttributes::PostGameplayEffectExecute(const FGameplayEffectModCal
 					WeaponBase->bIsBroken = true;
 				}
 			}
+			float CurrentDurabilityRatio = 1.0f;
+			if (!WeaponBase)
+			{
+				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, TEXT("WeaponBase is Null"));
+			}
 
-			float CurrentDurabilityRatio = WeaponBase->AS_WeaponAttributes->GetDurability() / WeaponBase->AS_WeaponAttributes->GetMaxDurability();
+			if (!WeaponBase->AS_WeaponAttributes)
+			{
+				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, TEXT("AS_WeaponAttributes is Null"));
+			}
+			else
+			{
+				 CurrentDurabilityRatio = WeaponBase->AS_WeaponAttributes->GetDurability() / WeaponBase->AS_WeaponAttributes->GetMaxDurability();
+			}
 
 			// 무기 내구도가 50% 미만인 경우 데미지 디버프
 			if (CurrentDurabilityRatio < 0.5f)

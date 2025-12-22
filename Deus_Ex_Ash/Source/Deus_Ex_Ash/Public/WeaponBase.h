@@ -75,13 +75,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void OnAttackHit(AActor* HitActor, FVector ImpactPoint, float Damage, float DurabilityAddAmount, float StaggerDuration, bool IgnoreGuard);
 
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TArray<struct FProjectileData> ProjectileDataArray;
-
-	UFUNCTION(BlueprintCallable)
-	void Fire(FProjectileData ProjectileData, AActor* TargetActor, bool bIsHoming);
-
 private:
 	TSet<AActor*> HitActors;
 

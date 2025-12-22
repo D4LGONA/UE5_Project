@@ -13,13 +13,13 @@ struct FItemData : public FTableRowBase
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FString ItemName;
+	FString ItemName = TEXT("");
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UTexture2D* ItemTexture;
+	UTexture2D* ItemTexture = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 DefaultRemainingUses;
+	int32 DefaultRemainingUses = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FGameplayTag OnKeyPressTag;
@@ -28,7 +28,15 @@ struct FItemData : public FTableRowBase
 	FGameplayTag OnKeyReleaseTag;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float Magnitude;
+	float Magnitude = 0.f;
+
+	FItemData()
+		: ItemName(TEXT(""))
+		, ItemTexture(nullptr)
+		, DefaultRemainingUses(0)
+		, Magnitude(0.f)
+	{
+	}
 };
 
 USTRUCT(BlueprintType)
@@ -37,10 +45,15 @@ struct FItemSlot
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FItemData ItemData;
+	FItemData ItemData; 
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 RemainingUses;
+	int32 RemainingUses = 0;
+
+	FItemSlot()
+		: RemainingUses(0)
+	{
+	}
 };
 
 UCLASS()

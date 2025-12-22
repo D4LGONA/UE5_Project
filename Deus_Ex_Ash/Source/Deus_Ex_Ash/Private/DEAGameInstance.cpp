@@ -3,12 +3,15 @@
 
 #include "DEAGameInstance.h"
 #include "Kismet/GameplayStatics.h"
+#include "AbilitySystemUtility.h"
 #include "Bonfire.h"
 
 
 void UDEAGameInstance::Init()
 {
 	Super::Init();
+
+	FAbilitySystemUtility::InitializeTags(); // 또는 다른 초기화
 
 	FBonfireInfo Bonfire_Tutorial
 	{

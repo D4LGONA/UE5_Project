@@ -13,10 +13,11 @@ struct FBonfireInfo
 	GENERATED_BODY()
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	FVector PlayerSpawnPosition;
+	FVector PlayerSpawnPosition = FVector::ZeroVector;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	FRotator PlayerSpawnRotation;
+	FRotator PlayerSpawnRotation = FRotator::ZeroRotator;
+
 };
 
 UCLASS()

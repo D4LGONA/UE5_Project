@@ -13,32 +13,55 @@ public:
 	void SendEventTag(const FGameplayTag Tag, AActor* _Instigator, AActor* Target, const float Magnitude, UAbilitySystemComponent* ASC);
 	FActiveGameplayEffectHandle ApplyGameplayEffect(UAbilitySystemComponent* SourceASC, UAbilitySystemComponent* TargetASC, TSubclassOf<UGameplayEffect> Effect, const float Level, const FGameplayTag DataTag, const float Magnitude);
 	
-private:
+	// Initialization helper (call from module StartupModule() if you prefer eager init)
+	static void InitializeTags();
+
+	// Accessors (lazy init)
+	static const FGameplayTag& GetGuardingTag();
+	static const FGameplayTag& GetPerfectGuardingTag();
+	static const FGameplayTag& GetGuardRegainTag();
+	static const FGameplayTag& GetGuardSuccessTag();
+	static const FGameplayTag& GetPerfectGuardSuccessTag();
+	static const FGameplayTag& GetHitTag();
+	static const FGameplayTag& GetGuardBreakHitTag();
+	static const FGameplayTag& GetParryPushBackTag();
+	static const FGameplayTag& GetGroggyTag();
+	static const FGameplayTag& GetStaggerTag();
+	static const FGameplayTag& GetDieTag();
+	static const FGameplayTag& GetRespawnTag();
+	static const FGameplayTag& GetKnockdownTag();
+
+	static const FGameplayTag& GetWeaponDurabilityInstantDataTag();
+	static const FGameplayTag& GetWeaponDamageInfiniteDataTag();
+	static const FGameplayTag& GetStatHealthDataTag();
+	static const FGameplayTag& GetStatTempHealthOverrideDataTag();
+	static const FGameplayTag& GetStatTempHealthInstantDataTag();
+	static const FGameplayTag& GetStatStaminaInstantDataTag();
+
+public:
 	FAbilitySystemUtility() {};
 	FAbilitySystemUtility(const FAbilitySystemUtility&) = delete;
 	FAbilitySystemUtility& operator=(const FAbilitySystemUtility&) = delete;
 
-public:
-	// Send Event Tag
-	static const FGameplayTag GuardingTag;
-	static const FGameplayTag PerfectGuardingTag;
-	static const FGameplayTag GuardRegainTag;
-	static const FGameplayTag GuardSuccessTag;
-	static const FGameplayTag PerfectGuardSuccessTag;
-	static const FGameplayTag HitTag;
-	static const FGameplayTag GuardBreakHitTag;
-	static const FGameplayTag ParryPushBackTag;
-	static const FGameplayTag GroggyTag;
-	static const FGameplayTag StaggerTag;
-	static const FGameplayTag DieTag;
-	static const FGameplayTag RespawnTag;
-	static const FGameplayTag KnockdownTag;
+	// Backing storage (non-const so we can initialize later)
+	static FGameplayTag GuardingTag;
+	static FGameplayTag PerfectGuardingTag;
+	static FGameplayTag GuardRegainTag;
+	static FGameplayTag GuardSuccessTag;
+	static FGameplayTag PerfectGuardSuccessTag;
+	static FGameplayTag HitTag;
+	static FGameplayTag GuardBreakHitTag;
+	static FGameplayTag ParryPushBackTag;
+	static FGameplayTag GroggyTag;
+	static FGameplayTag StaggerTag;
+	static FGameplayTag DieTag;
+	static FGameplayTag RespawnTag;
+	static FGameplayTag KnockdownTag;
 
-	// Effect Data Tag
-	static const FGameplayTag WeaponDurabilityInstantDataTag;
-	static const FGameplayTag WeaponDamageInfiniteDataTag;
-	static const FGameplayTag StatHealthDataTag;
-	static const FGameplayTag StatTempHealthOverrideDataTag;
-	static const FGameplayTag StatTempHealthInstantDataTag;
-	static const FGameplayTag StatStaminaInstantDataTag;
+	static FGameplayTag WeaponDurabilityInstantDataTag;
+	static FGameplayTag WeaponDamageInfiniteDataTag;
+	static FGameplayTag StatHealthDataTag;
+	static FGameplayTag StatTempHealthOverrideDataTag;
+	static FGameplayTag StatTempHealthInstantDataTag;
+	static FGameplayTag StatStaminaInstantDataTag;
 };

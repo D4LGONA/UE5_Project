@@ -26,8 +26,8 @@ enum class ECharacterDirection : uint8
 {
 	Forward UMETA(DisplayName = "Forward"),
 	Backward UMETA(DisplayName = "Backward"),
-	Left UMETA(DisplayName = "Left"),
-	Right UMETA(DisplayName = "Right")
+	Leftward UMETA(DisplayName = "Leftward"),
+	Rightward UMETA(DisplayName = "Rightward")
 };
 
 UCLASS()
@@ -117,7 +117,7 @@ public:
 	AActor* EquippedWeapon;
 
 
-	void ApplyDamage(AActor* AttackerCharacter, AActor* Projectile, FVector ImpactPoint, float Damage, float StaggerDuration, bool IgnoreGuard);
+	void ApplyDamage(AActor* AttackerCharacter, AActor* Projectile, float Damage, float StaggerDuration, bool IgnoreGuard);
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void Die();

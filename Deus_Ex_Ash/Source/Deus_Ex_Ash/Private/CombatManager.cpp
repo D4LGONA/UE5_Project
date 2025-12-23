@@ -66,6 +66,7 @@ void ACombatManager::ApplyDamage(bool IsPlayer)
     if (true == Defender->Stat.DEF) // 방어
     {
         Defender->Stat.DEF = false;
+        IsHitGuard = true;
         return;
 	}
 
@@ -138,6 +139,7 @@ void ACombatManager::ActiveAction()
         return;
     }
 
+    IsHitGuard = false;
     AttackedPos.Empty();
     OnAttackedPos.Broadcast(AttackedPos);
 
@@ -157,7 +159,6 @@ void ACombatManager::ActiveAction()
     }
     case EActionType::Attack:
     {
-        OnImageChange.Broadcast(bIsPlayer, EActionType::Attack);
         if (true == bIsPlayer) // 플레이어의 턴
         {
             switch (Card.Dir)
@@ -188,6 +189,7 @@ void ACombatManager::ActiveAction()
                     ApplyDamage(bIsPlayer);
                 break;
             }
+        OnImageChange.Broadcast(bIsPlayer, EActionType::Attack);
         }
         else // 적의 턴
         {
@@ -201,6 +203,7 @@ void ACombatManager::ActiveAction()
             case EAtkType::Phase2:
                 break;
             }
+        OnImageChange.Broadcast(bIsPlayer, EActionType::Attack);
         }
         break;
     }

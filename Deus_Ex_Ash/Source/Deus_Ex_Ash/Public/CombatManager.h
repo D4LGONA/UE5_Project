@@ -81,6 +81,8 @@ public:
     UPROPERTY()
     AEnemy* EnemyPawn;
 
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    bool IsHitGuard = false; // 이번턴에 막고있었는데 맞았다
 
     // === 설정 ===
     UFUNCTION(BlueprintCallable)

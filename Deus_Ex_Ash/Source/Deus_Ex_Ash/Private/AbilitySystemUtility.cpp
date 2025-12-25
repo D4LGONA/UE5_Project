@@ -6,8 +6,11 @@
 FGameplayTag FAbilitySystemUtility::GuardingTag;
 FGameplayTag FAbilitySystemUtility::PerfectGuardingTag;
 FGameplayTag FAbilitySystemUtility::GuardRegainTag;
+FGameplayTag FAbilitySystemUtility::InvincibleTag;
+
 FGameplayTag FAbilitySystemUtility::GuardSuccessTag;
 FGameplayTag FAbilitySystemUtility::PerfectGuardSuccessTag;
+
 FGameplayTag FAbilitySystemUtility::HitTag;
 FGameplayTag FAbilitySystemUtility::GuardBreakHitTag;
 FGameplayTag FAbilitySystemUtility::ParryPushBackTag;
@@ -36,8 +39,11 @@ void FAbilitySystemUtility::InitializeTags()
 	GuardingTag = FGameplayTag::RequestGameplayTag(FName("State.Combat.Guarding"));
 	PerfectGuardingTag = FGameplayTag::RequestGameplayTag(FName("State.Combat.PerfectGuarding"));
 	GuardRegainTag = FGameplayTag::RequestGameplayTag(FName("State.Combat.GuardRegain"));
+	InvincibleTag = FGameplayTag::RequestGameplayTag(FName("State.Invincible"));
+
 	GuardSuccessTag = FGameplayTag::RequestGameplayTag(FName("Ability.Defense.GuardSuccess"));
 	PerfectGuardSuccessTag = FGameplayTag::RequestGameplayTag(FName("Ability.Defense.PerfectGuardSuccess"));
+
 	HitTag = FGameplayTag::RequestGameplayTag(FName("Ability.State.Hit"));
 	GuardBreakHitTag = FGameplayTag::RequestGameplayTag(FName("Ability.State.GuardBreakHit"));
 	ParryPushBackTag = FGameplayTag::RequestGameplayTag(FName("Ability.State.ParryPushBack"));

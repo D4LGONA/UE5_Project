@@ -20,8 +20,11 @@ public:
 	static const FGameplayTag& GetGuardingTag();
 	static const FGameplayTag& GetPerfectGuardingTag();
 	static const FGameplayTag& GetGuardRegainTag();
+	static const FGameplayTag& GetInvincibleTag();
+
 	static const FGameplayTag& GetGuardSuccessTag();
 	static const FGameplayTag& GetPerfectGuardSuccessTag();
+
 	static const FGameplayTag& GetHitTag();
 	static const FGameplayTag& GetGuardBreakHitTag();
 	static const FGameplayTag& GetParryPushBackTag();
@@ -47,8 +50,11 @@ public:
 	static FGameplayTag GuardingTag;
 	static FGameplayTag PerfectGuardingTag;
 	static FGameplayTag GuardRegainTag;
+	static FGameplayTag InvincibleTag;
+
 	static FGameplayTag GuardSuccessTag;
 	static FGameplayTag PerfectGuardSuccessTag;
+
 	static FGameplayTag HitTag;
 	static FGameplayTag GuardBreakHitTag;
 	static FGameplayTag ParryPushBackTag;

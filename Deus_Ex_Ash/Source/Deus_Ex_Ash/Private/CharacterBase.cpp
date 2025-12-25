@@ -67,6 +67,12 @@ UAbilitySystemComponent* ACharacterBase::GetAbilitySystemComponent() const
 
 void ACharacterBase::ApplyDamage(AActor* AttackerCharacter, AActor* Projectile, float Damage, float StaggerDuration, bool IgnoreGuard)
 {
+	// 무적 태그 보유중이면 리턴
+	if (AbilitySystemComponent->HasMatchingGameplayTag(FAbilitySystemUtility::InvincibleTag))
+	{
+		return;
+	}
+
 	AWeaponBase* EquippedWeaponBase = Cast<AWeaponBase>(EquippedWeapon);
 	ACharacterBase*	AttackerCharacterBase = Cast<ACharacterBase>(AttackerCharacter);
 	AWeaponBase* AttackerWeaponBase	= Cast<AWeaponBase>(AttackerCharacterBase->EquippedWeapon);

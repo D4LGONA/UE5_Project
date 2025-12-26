@@ -14,9 +14,8 @@ class AMapNode;
 UENUM(BlueprintType)
 enum class EMapNodeType : uint8
 {
-    Start,         // 시작 노드 -> 흰색(데이터만 존재)
+    Start = 0,         // 시작 노드 -> 흰색(데이터만 존재)
     Normal,
-    Locked,        // 잠금(빨강계열)
     Interaction,   // 상호작용/키(노랑계열)
     Event,         // 이벤트(주황/금색계열)
     Exit           // 출구(파랑계열)
@@ -26,8 +25,8 @@ enum class EMapNodeType : uint8
 UENUM(BlueprintType)
 enum class EMapNodeState : uint8
 {
-    Closed,    // 잠김/비활성
-    Open,      // 해금
+    Open = 0,      // 해금
+    Locked,    // 잠김/비활성
 };
 
 USTRUCT(BlueprintType)
@@ -78,6 +77,8 @@ public:
     // 인접 노드 (에디터에서 드래그로 지정)
     UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category = "Node")
     TArray<TObjectPtr<AMapNode>> Neighbors;
+    UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category = "Node")
+    AMapNode* OpenNode = nullptr;
 
     // 동적 머티리얼
     UPROPERTY(Transient) 
@@ -94,5 +95,4 @@ public:
 
 protected:
     void EnsureMID();        // DiscMID 생성 보장
-    void RefreshVisuals();   // 색/외곽선 등 갱신
 };

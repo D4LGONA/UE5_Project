@@ -53,16 +53,35 @@ AMapNode* AEnemy::Stay()
     return curNode;
 }
 
+AMapNode* AEnemy::Patrol()
+{
+    if (PatrolArray.Num() == 0) return nullptr;
+
+    curPatrolIdx = curPatrolIdx % PatrolArray.Num();
+
+    AMapNode* Next = PatrolArray[curPatrolIdx];
+    curPatrolIdx = (curPatrolIdx + 1) % PatrolArray.Num();
+    return Next;
+}
+
 // 스폰때 호출
 void AEnemy::InitEnemy(AMapNode* InStartNode)
 {
     StartNode = InStartNode;
     curNode = StartNode;
-    AllowedNodes = GetNodesWithinDistance(StartNode, 2);
-    // 값을 세팅하는 부분
+    switch (MoveType) // 흠...
+    {
+    case EEnemyActionType::Random:
+        AllowedNodes = GetNodesWithinDistance(StartNode, 2);
+        break;
+    default:
+        break;
+    }
+    
+    // 캐릭터 스탯 초기화
     Stat.MaxHP = 150;
 	Stat.HP = Stat.MaxHP;
-    Stat.ATK = 50; // 여기 수정해야 함
+    Stat.ATK = 50;
     Stat.DEF = false;
 }
 

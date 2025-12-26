@@ -15,7 +15,8 @@ UENUM(BlueprintType)
 enum class EEnemyActionType : uint8
 {
 	Stay,
-	Random
+	Random,
+	Patrol
 };
 
 UCLASS()
@@ -31,17 +32,24 @@ private:
 	TArray<AMapNode*> AllowedNodes;  
 	TArray<AMapNode*> GetNodesWithinDistance(AMapNode* Origin, int32 MaxDist);
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditInstanceOnly)
 	EAtkType AtkType = EAtkType::Tutorial; // 이 적의 공격 타입
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditInstanceOnly)
 	EEnemyActionType MoveType = EEnemyActionType::Stay;
+
+	UPROPERTY(EditInstanceOnly)
+	TArray<AMapNode*> PatrolArray;
+
+	int curPatrolIdx = 1;
 
 public:
 	UFUNCTION(BlueprintCallable)
 	AMapNode* NextNode();
 	AMapNode* Random();
 	AMapNode* Stay();
+	AMapNode* Patrol();
+
 
 	UFUNCTION(BlueprintCallable)
 	void InitEnemy(AMapNode* InStartNode);

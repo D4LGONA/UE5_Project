@@ -77,7 +77,7 @@ void UAS_WeaponAttributes::PostGameplayEffectExecute(const FGameplayEffectModCal
 				}
 
 				float BaseWeaponDamage = WeaponBase->AS_WeaponAttributes->GetDamage();
-				float WeaponDamageAdder = -(BaseWeaponDamage * (0.5 - CurrentDurabilityRatio));
+				float WeaponDamageAdder = -(BaseWeaponDamage * (0.7 - CurrentDurabilityRatio));
 				WeaponBase->WeaponDamageInfiniteHandle = FAbilitySystemUtility::Get().ApplyGameplayEffect(WeaponBase->AbilitySystemComponent, WeaponBase->AbilitySystemComponent, WeaponBase->GE_WeaponDamage_Infinite, 0.0f, FAbilitySystemUtility::WeaponDamageInfiniteDataTag, WeaponDamageAdder);
 			}
 			else

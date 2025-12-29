@@ -196,7 +196,7 @@ void ACombatManager::ActiveAction()
             switch (EnemyPawn->GetAtkType())
             {
             case EAtkType::Tutorial:
-                TutorialAttack(bIsPlayer);
+                TutorialAttack(bIsPlayer, Card);
                 break;
             case EAtkType::Phase1:
                 break;
@@ -290,6 +290,25 @@ void ACombatManager::EnemySetup() // 적 카드넣는부분
         DefCard.Type = EActionType::Defend;
         DefCard.Dir = EDir4::None;
     }
+    if (EnemyPawn->GetAtkType() == EAtkType::Phase1)
+    {
+        // 1. 방어
+        FActionCard& DefCard = EnemyCards[0];
+        DefCard.Type = EActionType::Defend;
+        DefCard.Dir = EDir4::None;
+
+        // 2. 이동 카드
+        EDir4 MoveDir = CalcCh1MoveDir();
+        FActionCard& MoveCard = EnemyCards[1];
+        MoveCard.Type = EActionType::Move;
+        MoveCard.Dir = MoveDir;
+
+        // 3. 공격 카드
+        EDir4 AtkDir = CalcCh1AttackDir();
+        FActionCard& AtkCard = EnemyCards[2];
+        AtkCard.Type = EActionType::Attack;
+        AtkCard.Dir = AtkDir;
+    }
 
     // 덱으로 제작
     SetDeck();
@@ -301,65 +320,56 @@ void ACombatManager::EnemySetup() // 적 카드넣는부분
 
 EDir4 ACombatManager::CalcTutorialMoveDir() const
 {
-    int32 DX = PlayerPos.X - EnemyPos.X;
-    int32 DY = PlayerPos.Y - EnemyPos.Y;
+    const int32 DX = PlayerPos.X - EnemyPos.X; // +면 플레이어가 오른쪽
+    const int32 DY = PlayerPos.Y - EnemyPos.Y; // +면 플레이어가 위쪽
 
-    int32 AbsDX = DX;
-    if (AbsDX < 0)
-    {
-        AbsDX = -AbsDX;
-    }
+    const int32 AbsDX = (DX < 0) ? -DX : DX;
+    const int32 AbsDY = (DY < 0) ? -DY : DY;
 
-    int32 AbsDY = DY;
-    if (AbsDY < 0)
-    {
-        AbsDY = -AbsDY;
-    }
-
-    // 이미 인접(맨해튼 거리 1 이하)이면 이동 안 함
+    // 이미 인접(상하좌우 1칸)이면 이동 안 함
     if (AbsDX + AbsDY <= 1)
-    {
-        return EDir4::None; // 없으면 만들거나, 그냥 이동카드 안 넣도록 처리
-    }
+        return EDir4::None;
 
-    // 대각선: X축(좌우) 먼저 접근
+    // 대각선이면 좌우(X축) 먼저 접근
     if (DX != 0 && DY != 0)
-    {
-        if (DX > 0)
-        {
-            return EDir4::Right;
-        }
-        else
-        {
-            return EDir4::Left;
-        }
-    }
+        return (DX > 0) ? EDir4::Right : EDir4::Left;
 
     // 수평 정렬(Y 같음) → 좌우로 접근
     if (DY == 0 && DX != 0)
-    {
-        if (DX > 0)
-        {
-            return EDir4::Right;
-        }
-        else
-        {
-            return EDir4::Left;
-        }
-    }
+        return (DX > 0) ? EDir4::Right : EDir4::Left;
 
     // 수직 정렬(X 같음) → 상하로 접근
+    // 좌하단(0,0): DY > 0이면 플레이어가 위쪽이므로 Up으로 접근해야 함
     if (DX == 0 && DY != 0)
-    {
-        if (DY > 0)
-        {
-            return EDir4::Down;
-        }
-        else
-        {
-            return EDir4::Up;
-        }
-    }
+        return (DY > 0) ? EDir4::Up : EDir4::Down;
+
+    return EDir4::None;
+}
+
+EDir4 ACombatManager::CalcCh1MoveDir() const
+{
+    // 좌하단 (0,0): X+ 오른쪽, Y+ 위
+    const int32 DX = PlayerPos.X - EnemyPos.X; // +면 플레이어가 오른쪽
+    const int32 DY = PlayerPos.Y - EnemyPos.Y; // +면 플레이어가 위쪽
+
+    const int32 AbsDX = (DX < 0) ? -DX : DX;
+    const int32 AbsDY = (DY < 0) ? -DY : DY;
+
+    // 이미 인접(상하좌우 1칸)이면 이동할 필요 없음
+    if (AbsDX + AbsDY <= 1)
+        return EDir4::None;
+
+    // 대각선이면 좌/우 먼저 접근
+    if (DX != 0 && DY != 0)
+        return (DX > 0) ? EDir4::Right : EDir4::Left;
+
+    // 수평 정렬(Y 같음) -> 좌우 접근
+    if (DY == 0 && DX != 0)
+        return (DX > 0) ? EDir4::Right : EDir4::Left;
+
+    // 수직 정렬(X 같음) -> 상하 접근
+    if (DX == 0 && DY != 0)
+        return (DY > 0) ? EDir4::Up : EDir4::Down;
 
     return EDir4::None;
 }
@@ -383,16 +393,73 @@ EDir4 ACombatManager::CalcTutorialAttackDir() const
     }
 
     // 위/아래에 있으면 규칙상 무조건 Right
+    if (EnemyPos.X == 3) return EDir4::Left;
     return EDir4::Right;
 }
 
-// 튜토리얼 공격 처리
-void ACombatManager::TutorialAttack(bool IsPlayer)
+EDir4 ACombatManager::CalcCh1AttackDir() const
 {
-    AttackedPos.Add({ EnemyPos.X - 1, EnemyPos.Y });
-    if (PlayerPos.Y == EnemyPos.Y && PlayerPos.X == EnemyPos.X - 1)
+    const int32 DX = PlayerPos.X - EnemyPos.X; // +면 플레이어가 오른쪽
+    const int32 DY = PlayerPos.Y - EnemyPos.Y; // +면 플레이어가 위쪽
+
+    const int32 AbsDX = (DX < 0) ? -DX : DX;
+    const int32 AbsDY = (DY < 0) ? -DY : DY;
+
+    // 대각선이면 좌/우 먼저 접근
+    if (DX != 0 && DY != 0)
+        return (DX > 0) ? EDir4::Right : EDir4::Left;
+
+    // 수평 정렬(Y 같음) -> 좌우 접근
+    if (DY == 0 && DX != 0)
+        return (DX > 0) ? EDir4::Right : EDir4::Left;
+
+    // 수직 정렬(X 같음) -> 상하 접근
+    if (DX == 0 && DY != 0)
+        return (DY > 0) ? EDir4::Up : EDir4::Down;
+
+    return EDir4::None;
+}
+
+// 튜토리얼 공격 처리
+void ACombatManager::TutorialAttack(bool IsPlayer, FActionCard& card)
+{
+    switch (card.Dir)
     {
-        ApplyDamage(IsPlayer); 
+    case EDir4::Left:
+        // 왼쪽 1칸
+        AttackedPos.Add({ EnemyPos.X - 1, EnemyPos.Y });
+        if (EnemyPos.X - 1 == PlayerPos.X && EnemyPos.Y == PlayerPos.Y)
+            ApplyDamage(IsPlayer);
+        break;
+
+    case EDir4::Right:
+        AttackedPos.Add({ EnemyPos.X + 1, EnemyPos.Y });
+        if (EnemyPos.X + 1 == PlayerPos.X && EnemyPos.Y == PlayerPos.Y)
+            ApplyDamage(IsPlayer);
+        break;
+    default:
+        break;
+    }
+}
+
+void ACombatManager::Chapter1Attack(bool IsPlayer, FActionCard& card) // todo: 여기 수정
+{
+    switch (card.Dir)
+    {
+    case EDir4::Left:
+        // 왼쪽 1칸
+        AttackedPos.Add({ EnemyPos.X - 1, EnemyPos.Y });
+        if (EnemyPos.X - 1 == PlayerPos.X && EnemyPos.Y == PlayerPos.Y)
+            ApplyDamage(IsPlayer);
+        break;
+
+    case EDir4::Right:
+        AttackedPos.Add({ EnemyPos.X + 1, EnemyPos.Y });
+        if (EnemyPos.X + 1 == PlayerPos.X && EnemyPos.Y == PlayerPos.Y)
+            ApplyDamage(IsPlayer);
+        break;
+    default:
+        break;
     }
 }
 

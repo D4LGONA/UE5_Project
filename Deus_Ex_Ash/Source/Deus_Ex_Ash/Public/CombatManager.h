@@ -132,8 +132,11 @@ private:
     // Àû AI
  
     EDir4 CalcTutorialMoveDir() const;
+    EDir4 CalcCh1MoveDir() const;
     EDir4 CalcTutorialAttackDir() const;
-    void TutorialAttack(bool IsPlayer);
+    EDir4 CalcCh1AttackDir() const;
+    void TutorialAttack(bool IsPlayer, FActionCard& card);
+    void Chapter1Attack(bool IsPlayer, FActionCard& card);
 
 
     UPROPERTY(VisibleAnywhere, Category = "State") 

@@ -20,6 +20,9 @@ AMapNode* AEnemy::NextNode()
     case EEnemyActionType::Random:
         outNode = Random();
         break;
+    case EEnemyActionType::Patrol:
+        outNode = Patrol();
+        break;
     }
     return outNode;
 }

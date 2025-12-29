@@ -38,7 +38,7 @@ void AProjectileBase::BeginPlay()
 //
 //}
 
-void AProjectileBase::OnHit(AActor* HitActor, AActor* ProjectileActor, float Damage, float DurabilityDecrease, float StaggerDuration, bool IgnoreGuard)
+void AProjectileBase::OnHit(AActor* HitActor, AActor* ProjectileActor, float Damage, float DurabilityDecrease, float HitDuration, float StaggerDuration, bool IgnoreGuard)
 {
 	AActor* ProjectileOwner = GetOwner();
 	AWeaponBase* ProjectileOwnerWeaponBase = Cast<AWeaponBase>(ProjectileOwner); // 투사체 소유자 = 무기
@@ -62,7 +62,7 @@ void AProjectileBase::OnHit(AActor* HitActor, AActor* ProjectileActor, float Dam
 	if (ProjectileOwner && OwnerCharacterBase && HitCharacterBase)
 	{
 		// 맞은 캐릭터 데미지 적용
-		HitCharacterBase->ApplyDamage(OwnerCharacterBase, ProjectileActor, Damage, StaggerDuration, IgnoreGuard);
+		HitCharacterBase->ApplyDamage(OwnerCharacterBase, ProjectileActor, Damage, HitDuration, StaggerDuration, IgnoreGuard);
 
 		// 가드 리게인 태그 보유중이면
 		if (OwnerCharacterBase->AbilitySystemComponent->HasMatchingGameplayTag(FAbilitySystemUtility::GuardRegainTag))

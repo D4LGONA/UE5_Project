@@ -65,7 +65,7 @@ UAbilitySystemComponent* ACharacterBase::GetAbilitySystemComponent() const
 	return AbilitySystemComponent;
 }
 
-void ACharacterBase::ApplyDamage(AActor* AttackerCharacter, AActor* Projectile, float Damage, float StaggerDuration, bool IgnoreGuard)
+void ACharacterBase::ApplyDamage(AActor* AttackerCharacter, AActor* Projectile, float Damage, float HitDuration, float StaggerDuration, bool IgnoreGuard)
 {
 	// 무적 태그 보유중이면 리턴
 	if (AbilitySystemComponent->HasMatchingGameplayTag(FAbilitySystemUtility::InvincibleTag))
@@ -158,7 +158,7 @@ void ACharacterBase::ApplyDamage(AActor* AttackerCharacter, AActor* Projectile, 
 				// 가드 무시 공격이면
 				if (IgnoreGuard)
 				{
-					Hit(AttackerCharacterBase, HitDirection, Damage, StaggerDuration, true);
+					Hit(AttackerCharacterBase, HitDirection, Damage, HitDuration, StaggerDuration, true);
 				}
 				// 저스트 가드
 				else
@@ -187,7 +187,7 @@ void ACharacterBase::ApplyDamage(AActor* AttackerCharacter, AActor* Projectile, 
 					else
 					{
 						// 피격
-						Hit(AttackerCharacterBase, HitDirection, Damage, StaggerDuration, false);
+						Hit(AttackerCharacterBase, HitDirection, Damage, HitDuration, StaggerDuration, false);
 					}
 					float CurrentDurabilityRatio = EquippedWeaponBase->AS_WeaponAttributes->GetDurability() / EquippedWeaponBase->AS_WeaponAttributes->GetMaxDurability();
 
@@ -237,7 +237,7 @@ void ACharacterBase::ApplyDamage(AActor* AttackerCharacter, AActor* Projectile, 
 		else
 		{
 			// 피격
-			Hit(AttackerCharacterBase, HitDirection, Damage, StaggerDuration, false);
+			Hit(AttackerCharacterBase, HitDirection, Damage, HitDuration, StaggerDuration, false);
 		}
 	}
 	else
@@ -260,7 +260,7 @@ void ACharacterBase::ApplyDamage(AActor* AttackerCharacter, AActor* Projectile, 
 	}
 }
 
-void ACharacterBase::Hit(ACharacterBase* AttackerCharacterBase, ECharacterDirection HitDirectionEnum, float Damage, float StaggerDuration, bool IgnoreGuard)
+void ACharacterBase::Hit(ACharacterBase* AttackerCharacterBase, ECharacterDirection HitDirectionEnum, float Damage, float HitDuration, float StaggerDuration, bool IgnoreGuard)
 {
 	// 그로기 상태
 	if (AbilitySystemComponent->HasMatchingGameplayTag(FAbilitySystemUtility::GroggyTag))
@@ -276,10 +276,30 @@ void ACharacterBase::Hit(ACharacterBase* AttackerCharacterBase, ECharacterDirect
 	{
 		FAbilitySystemUtility::Get().SendEventTag(FAbilitySystemUtility::GuardBreakHitTag, AttackerCharacterBase, this, AbilitySystemComponent);
 	}
+	// 히트 태그 전송
 	else
 	{
-		// 히트 태그 전송
-		FAbilitySystemUtility::Get().SendEventTag(FAbilitySystemUtility::HitTag, AttackerCharacterBase, this, (float)HitDirectionEnum, AbilitySystemComponent);
+		FGameplayTag HitDirectionTag;
+		switch (HitDirectionEnum)
+		{
+			case ECharacterDirection::Forward:
+				HitDirectionTag = FAbilitySystemUtility::HitForwardTag;
+				break;
+
+			case ECharacterDirection::Backward:
+				HitDirectionTag = FAbilitySystemUtility::HitBackwardTag;
+				break;
+
+			case ECharacterDirection::Leftward:
+				HitDirectionTag = FAbilitySystemUtility::HitLeftwardTag;
+				break;
+
+			case ECharacterDirection::Rightward:
+				HitDirectionTag = FAbilitySystemUtility::HitRightwardTag;
+				break;
+		}
+
+		FAbilitySystemUtility::Get().SendEventTag(FAbilitySystemUtility::HitTag, AttackerCharacterBase, this, HitDirectionTag.GetSingleTagContainer(), HitDuration, AbilitySystemComponent);
 	}
 
 	// 가드 리게인 태그 보유중인 경우 데미지만큼 임시체력 감소

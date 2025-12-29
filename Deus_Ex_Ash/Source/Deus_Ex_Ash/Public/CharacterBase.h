@@ -117,7 +117,7 @@ public:
 	AActor* EquippedWeapon;
 
 
-	void ApplyDamage(AActor* AttackerCharacter, AActor* Projectile, float Damage, float StaggerDuration, bool IgnoreGuard);
+	void ApplyDamage(AActor* AttackerCharacter, AActor* Projectile, float Damage, float HitDuration, float StaggerDuration, bool IgnoreGuard);
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void Die();
@@ -128,5 +128,5 @@ public:
 
 
 private:
-	void Hit(ACharacterBase* AttackerCharacterBase, ECharacterDirection HitDirection, float Damage, float StaggerDuration, bool IgnoreGuard);
+	void Hit(ACharacterBase* AttackerCharacterBase, ECharacterDirection HitDirection, float Damage, float HitDuration, float StaggerDuration, bool IgnoreGuard);
 };

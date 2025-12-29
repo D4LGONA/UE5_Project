@@ -12,6 +12,10 @@ FGameplayTag FAbilitySystemUtility::GuardSuccessTag;
 FGameplayTag FAbilitySystemUtility::PerfectGuardSuccessTag;
 
 FGameplayTag FAbilitySystemUtility::HitTag;
+FGameplayTag FAbilitySystemUtility::HitForwardTag;
+FGameplayTag FAbilitySystemUtility::HitBackwardTag;
+FGameplayTag FAbilitySystemUtility::HitLeftwardTag;
+FGameplayTag FAbilitySystemUtility::HitRightwardTag;
 FGameplayTag FAbilitySystemUtility::GuardBreakHitTag;
 FGameplayTag FAbilitySystemUtility::ParryPushBackTag;
 FGameplayTag FAbilitySystemUtility::GroggyTag;
@@ -45,6 +49,10 @@ void FAbilitySystemUtility::InitializeTags()
 	PerfectGuardSuccessTag = FGameplayTag::RequestGameplayTag(FName("Ability.Defense.PerfectGuardSuccess"));
 
 	HitTag = FGameplayTag::RequestGameplayTag(FName("Ability.State.Hit"));
+	HitForwardTag = FGameplayTag::RequestGameplayTag(FName("Ability.State.Hit.Forward"));
+	HitBackwardTag = FGameplayTag::RequestGameplayTag(FName("Ability.State.Hit.Backward"));
+	HitLeftwardTag = FGameplayTag::RequestGameplayTag(FName("Ability.State.Hit.Leftward"));
+	HitRightwardTag = FGameplayTag::RequestGameplayTag(FName("Ability.State.Hit.Rightward"));
 	GuardBreakHitTag = FGameplayTag::RequestGameplayTag(FName("Ability.State.GuardBreakHit"));
 	ParryPushBackTag = FGameplayTag::RequestGameplayTag(FName("Ability.State.ParryPushBack"));
 	GroggyTag = FGameplayTag::RequestGameplayTag(FName("Ability.State.Groggy"));
@@ -89,6 +97,15 @@ const FGameplayTag& FAbilitySystemUtility::GetGuardRegainTag()
 	return GuardRegainTag;
 }
 
+const FGameplayTag& FAbilitySystemUtility::GetInvincibleTag()
+{
+	if (!InvincibleTag.IsValid())
+	{
+		InvincibleTag = FGameplayTag::RequestGameplayTag(FName("State.Invincible"));
+	}
+	return InvincibleTag;
+}
+
 const FGameplayTag& FAbilitySystemUtility::GetGuardSuccessTag()
 {
 	if (!GuardSuccessTag.IsValid())
@@ -114,6 +131,38 @@ const FGameplayTag& FAbilitySystemUtility::GetHitTag()
 		HitTag = FGameplayTag::RequestGameplayTag(FName("Ability.State.Hit"));
 	}
 	return HitTag;
+}
+const FGameplayTag& FAbilitySystemUtility::GetHitForwardTag()
+{
+	if (!HitForwardTag.IsValid())
+	{
+		HitForwardTag = FGameplayTag::RequestGameplayTag(FName("Ability.State.Hit.Forward"));
+	}
+	return HitForwardTag;
+}
+const FGameplayTag& FAbilitySystemUtility::GetHitBackwardTag()
+{
+	if (!HitBackwardTag.IsValid())
+	{
+		HitBackwardTag = FGameplayTag::RequestGameplayTag(FName("Ability.State.Hit.Backward"));
+	}
+	return HitBackwardTag;
+}
+const FGameplayTag& FAbilitySystemUtility::GetHitLeftwardTag()
+{
+	if (!HitLeftwardTag.IsValid())
+	{
+		HitLeftwardTag = FGameplayTag::RequestGameplayTag(FName("Ability.State.Hit.Leftward"));
+	}
+	return HitLeftwardTag;
+}
+const FGameplayTag& FAbilitySystemUtility::GetHitRightwardTag()
+{
+	if (!HitRightwardTag.IsValid())
+	{
+		HitRightwardTag = FGameplayTag::RequestGameplayTag(FName("Ability.State.Hit.Rightward"));
+	}
+	return HitRightwardTag;
 }
 
 const FGameplayTag& FAbilitySystemUtility::GetGuardBreakHitTag()
@@ -242,12 +291,23 @@ void FAbilitySystemUtility::SendEventTag(const FGameplayTag Tag, AActor* _Instig
 	ASC->HandleGameplayEvent(EventData.EventTag, &EventData);
 }
 
-void FAbilitySystemUtility::SendEventTag(const FGameplayTag Tag, AActor* _Instigator, AActor* Target, const float Magnitude, UAbilitySystemComponent* ASC)
+void FAbilitySystemUtility::SendEventTag(const FGameplayTag Tag, AActor* Instigator, AActor* Target, const float Magnitude, UAbilitySystemComponent* ASC)
 {
 	FGameplayEventData EventData;
 	EventData.EventTag = Tag;
-	EventData.Instigator = _Instigator;
+	EventData.Instigator = Instigator;
 	EventData.Target = Target;
+	EventData.EventMagnitude = Magnitude;
+	ASC->HandleGameplayEvent(EventData.EventTag, &EventData);
+}
+
+void FAbilitySystemUtility::SendEventTag(const FGameplayTag Tag, AActor* Instigator, AActor* Target, FGameplayTagContainer InstigatorTags, const float Magnitude, UAbilitySystemComponent* ASC)
+{
+	FGameplayEventData EventData;
+	EventData.EventTag = Tag;
+	EventData.Instigator = Instigator;
+	EventData.Target = Target;
+	EventData.InstigatorTags = InstigatorTags;
 	EventData.EventMagnitude = Magnitude;
 	ASC->HandleGameplayEvent(EventData.EventTag, &EventData);
 }

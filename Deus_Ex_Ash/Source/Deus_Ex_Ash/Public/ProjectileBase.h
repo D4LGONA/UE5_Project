@@ -38,7 +38,7 @@ public:
 
 
 	UFUNCTION(BlueprintCallable)
-	void OnHit(AActor* HitActor, AActor* ProjectileActor, float Damage, float DurabilityDecrease, float StaggerDuration, bool IgnoreGuard);
+	void OnHit(AActor* HitActor, AActor* ProjectileActor, float Damage, float DurabilityDecrease, float HitDuration, float StaggerDuration, bool IgnoreGuard);
 
 	void SetFireDirection(const FVector& Direction);
 };

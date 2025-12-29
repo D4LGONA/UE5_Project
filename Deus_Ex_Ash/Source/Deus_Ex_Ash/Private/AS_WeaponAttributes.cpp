@@ -92,7 +92,7 @@ void UAS_WeaponAttributes::PostGameplayEffectExecute(const FGameplayEffectModCal
 		{
 			// null
 
-			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, TEXT("Null.."));
+			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, TEXT("[AS_WeaponAttributes.cpp] Null.."));
 		}
 	}
 }

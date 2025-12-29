@@ -10,7 +10,8 @@ class DEUS_EX_ASH_API FAbilitySystemUtility
 public:
 	static FAbilitySystemUtility& Get();
 	void SendEventTag(const FGameplayTag Tag, AActor* Instigator, AActor* Target, UAbilitySystemComponent* ASC);
-	void SendEventTag(const FGameplayTag Tag, AActor* _Instigator, AActor* Target, const float Magnitude, UAbilitySystemComponent* ASC);
+	void SendEventTag(const FGameplayTag Tag, AActor* Instigator, AActor* Target, const float Magnitude, UAbilitySystemComponent* ASC);
+	void SendEventTag(const FGameplayTag Tag, AActor* Instigator, AActor* Target, FGameplayTagContainer InstigatorTags, const float Magnitude, UAbilitySystemComponent* ASC);
 	FActiveGameplayEffectHandle ApplyGameplayEffect(UAbilitySystemComponent* SourceASC, UAbilitySystemComponent* TargetASC, TSubclassOf<UGameplayEffect> Effect, const float Level, const FGameplayTag DataTag, const float Magnitude);
 	
 	// Initialization helper (call from module StartupModule() if you prefer eager init)
@@ -26,6 +27,10 @@ public:
 	static const FGameplayTag& GetPerfectGuardSuccessTag();
 
 	static const FGameplayTag& GetHitTag();
+	static const FGameplayTag& GetHitForwardTag();
+	static const FGameplayTag& GetHitBackwardTag();
+	static const FGameplayTag& GetHitLeftwardTag();
+	static const FGameplayTag& GetHitRightwardTag();
 	static const FGameplayTag& GetGuardBreakHitTag();
 	static const FGameplayTag& GetParryPushBackTag();
 	static const FGameplayTag& GetGroggyTag();
@@ -56,6 +61,10 @@ public:
 	static FGameplayTag PerfectGuardSuccessTag;
 
 	static FGameplayTag HitTag;
+	static FGameplayTag HitForwardTag;
+	static FGameplayTag HitBackwardTag;
+	static FGameplayTag HitLeftwardTag;
+	static FGameplayTag HitRightwardTag;
 	static FGameplayTag GuardBreakHitTag;
 	static FGameplayTag ParryPushBackTag;
 	static FGameplayTag GroggyTag;

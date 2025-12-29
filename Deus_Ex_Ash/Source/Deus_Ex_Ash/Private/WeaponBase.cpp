@@ -70,7 +70,7 @@ void AWeaponBase::ResetHitActors()
 }
 
 
-void AWeaponBase::OnAttackHit(AActor* HitActor, float Damage, float DurabilityAddAmount, float StaggerDuration, bool IgnoreGuard)
+void AWeaponBase::OnAttackHit(AActor* HitActor, float Damage, float DurabilityAddAmount, float HitDuration, float StaggerDuration, bool IgnoreGuard)
 {
 	AActor* WeaponOwner = GetOwner();
 	ACharacterBase* WeaponOwnerCharacterBase = Cast<ACharacterBase>(WeaponOwner);
@@ -79,7 +79,7 @@ void AWeaponBase::OnAttackHit(AActor* HitActor, float Damage, float DurabilityAd
 	if (WeaponOwner && WeaponOwnerCharacterBase && HitCharacterBase)
 	{
 		// 맞은 캐릭터 데미지 적용
-		HitCharacterBase->ApplyDamage(WeaponOwner, nullptr, Damage, StaggerDuration, IgnoreGuard);
+		HitCharacterBase->ApplyDamage(WeaponOwner, nullptr, Damage, HitDuration, StaggerDuration, IgnoreGuard);
 
 		// 무기 내구도 감소
 		FAbilitySystemUtility::Get().ApplyGameplayEffect(AbilitySystemComponent, AbilitySystemComponent, GE_WeaponDurability_Instant, 0.0f, FAbilitySystemUtility::WeaponDurabilityInstantDataTag, DurabilityAddAmount);

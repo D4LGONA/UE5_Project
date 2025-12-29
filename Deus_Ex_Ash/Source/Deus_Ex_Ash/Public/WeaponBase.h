@@ -73,7 +73,7 @@ public:
 
 
 	UFUNCTION(BlueprintCallable)
-	void OnAttackHit(AActor* HitActor, float Damage, float DurabilityAddAmount, float StaggerDuration, bool IgnoreGuard);
+	void OnAttackHit(AActor* HitActor, float Damage, float DurabilityAddAmount, float HitDuration, float StaggerDuration, bool IgnoreGuard);
 
 private:
 	TSet<AActor*> HitActors;

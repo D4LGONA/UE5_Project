@@ -26,6 +26,9 @@ struct FSkillData : public FTableRowBase
 	FGameplayTag OnKeyPressTag;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FGameplayTag EffectCooldownGrantedTag;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float Magnitude;
 };
 
@@ -42,9 +45,6 @@ struct FSkillSlot
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 RemainingUses;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	bool bIsCooldown;
 };
 
 

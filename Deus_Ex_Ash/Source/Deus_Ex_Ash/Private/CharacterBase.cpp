@@ -191,8 +191,8 @@ void ACharacterBase::ApplyDamage(AActor* AttackerCharacter, AActor* Projectile, 
 					}
 					float CurrentDurabilityRatio = EquippedWeaponBase->AS_WeaponAttributes->GetDurability() / EquippedWeaponBase->AS_WeaponAttributes->GetMaxDurability();
 
-					// 무기 내구도 < 30%, 플레이어만 가드 리게인 사용
-					if (CurrentDurabilityRatio < 0.3f && CharacterType == ECharacterType::Player)
+					// 무기 내구도 상관 없이, 플레이어만 가드 리게인 사용
+					if (CharacterType == ECharacterType::Player)
 					{
 						// 받은 데미지 * 0.7만큼 체력 감소
 						float ReducedDamage = Damage * 0.7f;

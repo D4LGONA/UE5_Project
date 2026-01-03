@@ -42,18 +42,3 @@ public:
 
 	void SetFireDirection(const FVector& Direction);
 };
-
-USTRUCT(BlueprintType)
-struct FProjectileData
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TSubclassOf<AProjectileBase> Class;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	USceneComponent* SpawnPoint;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float Damage;
-};

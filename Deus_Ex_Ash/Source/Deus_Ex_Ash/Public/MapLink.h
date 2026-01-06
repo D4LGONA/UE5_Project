@@ -26,10 +26,10 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	// 링크의 양 끝 노드
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Link")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Link")
 	AMapNode* StartNode = nullptr;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Link")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Link")
 	AMapNode* EndNode = nullptr;
 
 	UFUNCTION(BlueprintNativeEvent)

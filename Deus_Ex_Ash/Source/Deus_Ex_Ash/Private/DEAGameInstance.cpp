@@ -21,8 +21,8 @@ void UDEAGameInstance::Init()
 
 	FBonfireInfo Bonfire_Chapter1
 	{
-		FVector(0.0f, 0.0f, 10.0f),
-		FRotator(0.0f, 0.0f, 0.0f)
+		FVector(6686.0f, -1642.0f, 2423.0f),
+		FRotator(0.0f, -40.0f, 0.0f)
 	};
 
 	FBonfireInfo Bonfire_Chapter4

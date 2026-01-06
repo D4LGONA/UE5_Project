@@ -40,7 +40,7 @@ public:
 	{
 		{ ELevelNameEnum::None, FName("") },
 		{ ELevelNameEnum::Tutorial, FName("Tutorial") },
-		{ ELevelNameEnum::Chapter1, FName("Chapter1") },
+		{ ELevelNameEnum::Chapter1, FName("Map1") },
 		{ ELevelNameEnum::Chapter2, FName("Chapter2") },
 		{ ELevelNameEnum::Chapter2_5, FName("Chapter2_5") },
 		{ ELevelNameEnum::Chapter3, FName("Chapter3") },

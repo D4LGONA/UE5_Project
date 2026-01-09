@@ -80,12 +80,6 @@ void AEnemy::InitEnemy(AMapNode* InStartNode)
     default:
         break;
     }
-    
-    // 캐릭터 스탯 초기화
-    Stat.MaxHP = 150;
-	Stat.HP = Stat.MaxHP;
-    Stat.ATK = 50;
-    Stat.DEF = false;
 }
 
 void AEnemy::BeginPlay()

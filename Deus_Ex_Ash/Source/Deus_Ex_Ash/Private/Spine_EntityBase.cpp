@@ -36,7 +36,7 @@ void ASpine_EntityBase::Tick(float DeltaTime)
 		}
 
 		// ¿Ãµø
-		FVector newPos = FMath::VInterpConstantTo(curPos, destPos, DeltaTime, 500.0f);
+		FVector newPos = FMath::VInterpConstantTo(curPos, destPos, DeltaTime, 750.0f);
 		SetActorLocation(newPos);
 
 		float distance = FVector::Dist(newPos, destPos);

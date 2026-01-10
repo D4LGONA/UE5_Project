@@ -194,15 +194,15 @@ void ACharacterBase::ApplyDamage(AActor* AttackerCharacter, AActor* Projectile, 
 					// 무기 내구도 상관 없이, 플레이어만 가드 리게인 사용
 					if (CharacterType == ECharacterType::Player)
 					{
-						// 받은 데미지 * 0.7만큼 체력 감소
-						float ReducedDamage = Damage * 0.7f;
+						// 받은 데미지 * 0.5만큼 체력 감소
+						float ReducedDamage = Damage * 0.5f;
 						FAbilitySystemUtility::Get().ApplyGameplayEffect(AttackerWeaponBase->AbilitySystemComponent, AbilitySystemComponent, GE_Health, 0.0f, FAbilitySystemUtility::StatHealthDataTag, -ReducedDamage);
 
 						// 가드 리게인 태그 없으면
 						if (!AbilitySystemComponent->HasMatchingGameplayTag(FAbilitySystemUtility::GuardRegainTag))
 						{
-							// 감소된 데미지 * 0.6 만큼 임시 체력
-							float TargetTempHealth = AS_CharacterAttributes->GetHealth() + ReducedDamage * 0.6f;
+							// 감소된 데미지 * 0.8 만큼 임시 체력
+							float TargetTempHealth = AS_CharacterAttributes->GetHealth() + ReducedDamage * 0.8f;
 
 							// 가드 리게인 활성화
 							SetGuardRegainActive(true, TargetTempHealth);

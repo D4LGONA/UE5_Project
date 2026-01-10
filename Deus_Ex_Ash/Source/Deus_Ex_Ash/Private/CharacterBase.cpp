@@ -191,7 +191,7 @@ void ACharacterBase::ApplyDamage(AActor* AttackerCharacter, AActor* Projectile, 
 					}
 					float CurrentDurabilityRatio = EquippedWeaponBase->AS_WeaponAttributes->GetDurability() / EquippedWeaponBase->AS_WeaponAttributes->GetMaxDurability();
 
-					// 무기 내구도 상관 없이, 플레이어만 가드 리게인 사용
+					// 무기 내구도 상관 없이, 플레이어만 가드 리게인 사용, 플레이어만 저스트 가드에서 데미지 받음
 					if (CharacterType == ECharacterType::Player)
 					{
 						// 받은 데미지 * 0.5만큼 체력 감소
@@ -221,6 +221,11 @@ void ACharacterBase::ApplyDamage(AActor* AttackerCharacter, AActor* Projectile, 
 							);
 						}
 					}
+					else
+					{
+						GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, TEXT("asdasd"));
+					}
+
 
 					// 상대가 플레이어고 스태미나 0이면 그로기 -> 보류
 					/*if (AttackerCharacterBase->CharacterType == ECharacterType::Player)

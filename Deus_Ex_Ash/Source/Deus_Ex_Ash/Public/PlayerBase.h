@@ -29,6 +29,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<FItemSlot> ItemSlotList;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 SelectedItemSlotIndex;
+
 	// 스킬 슬롯 리스트
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<FSkillSlot> SkillSlotList;

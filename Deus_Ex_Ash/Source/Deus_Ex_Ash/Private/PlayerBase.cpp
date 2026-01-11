@@ -10,6 +10,7 @@ UPlayerBase::UPlayerBase()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 
+	SelectedItemSlotIndex = 0;
 }
 
 void UPlayerBase::BeginPlay()

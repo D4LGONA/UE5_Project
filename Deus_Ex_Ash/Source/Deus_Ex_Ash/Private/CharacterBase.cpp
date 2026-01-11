@@ -221,10 +221,6 @@ void ACharacterBase::ApplyDamage(AActor* AttackerCharacter, AActor* Projectile, 
 							);
 						}
 					}
-					else
-					{
-						GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, TEXT("asdasd"));
-					}
 
 
 					// 상대가 플레이어고 스태미나 0이면 그로기 -> 보류

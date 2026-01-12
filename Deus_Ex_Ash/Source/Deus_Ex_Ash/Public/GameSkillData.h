@@ -20,6 +20,9 @@ struct FSkillData : public FTableRowBase
 	FString SkillName;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FText SkillInfo;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UTexture2D* SkillTexture = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

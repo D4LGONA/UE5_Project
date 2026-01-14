@@ -29,6 +29,8 @@ struct FPos { // 위치 저장
     UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 X = 0;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 Y = 0;
     bool operator==(const FPos& O) const { return X == O.X && Y == O.Y; }
+    FPos operator+(const FPos& O) const { return FPos{ X + O.X, Y + O.Y }; }
+    FPos operator-(const FPos& O) const { return FPos{ X - O.X, Y - O.Y }; }
 };
 
 USTRUCT(BlueprintType)
@@ -46,6 +48,12 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPhaseChanged, ECombatPhase, NewPh
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAttackedPos, const TArray<FPos>&, Positions);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCombatEnded, bool, bPlayerWin);
 
+
+static const FPos HOffsets3x3[] = {
+    { -1,  1 }, {  1,  1 },
+    { -1,  0 }, {  1,  0 },
+    { -1, -1 }, {  1, -1 },
+};
 
 
 UCLASS()
@@ -133,11 +141,16 @@ private:
  
     EDir4 CalcTutorialMoveDir() const;
     EDir4 CalcCh1MoveDir() const;
+    EDir4 CalcCh2MoveDir();
     EDir4 CalcTutorialAttackDir() const;
     EDir4 CalcCh1AttackDir() const;
     void TutorialAttack(bool IsPlayer, FActionCard& card);
     void Chapter1Attack(bool IsPlayer, FActionCard& card);
+    void Chapter2Attack(bool IsPlayer, FActionCard& card);
 
+
+
+    bool IsPlayerInAttackRange_Phase2() const;
 
     UPROPERTY(VisibleAnywhere, Category = "State") 
     ECombatPhase Phase = ECombatPhase::Prepare;

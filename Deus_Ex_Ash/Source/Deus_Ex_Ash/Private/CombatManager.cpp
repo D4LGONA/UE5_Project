@@ -199,8 +199,10 @@ void ACombatManager::ActiveAction()
                 TutorialAttack(bIsPlayer, Card);
                 break;
             case EAtkType::Phase1:
+                Chapter1Attack(bIsPlayer, Card);
                 break;
             case EAtkType::Phase2:
+                Chapter2Attack(bIsPlayer, Card);
                 break;
             }
         OnImageChange.Broadcast(bIsPlayer, EActionType::Attack);
@@ -309,6 +311,35 @@ void ACombatManager::EnemySetup() // 적 카드넣는부분
         AtkCard.Type = EActionType::Attack;
         AtkCard.Dir = AtkDir;
     }
+    if (EnemyPawn->GetAtkType() == EAtkType::Phase2)
+    {
+        const bool bInRange = IsPlayerInAttackRange_Phase2();
+
+        if (bInRange)
+        {
+            // 공격 > 방어 > 이동
+            EnemyCards[0].Type = EActionType::Attack;
+            EnemyCards[0].Dir = EDir4::None;
+
+            EnemyCards[1].Type = EActionType::Defend;
+            EnemyCards[1].Dir = EDir4::None;
+
+            EnemyCards[2].Type = EActionType::Move;
+            EnemyCards[2].Dir = CalcCh2MoveDir();
+        }
+        else
+        {
+            // 이동 > 공격 > 방어
+            EnemyCards[0].Type = EActionType::Move;
+            EnemyCards[0].Dir = CalcCh2MoveDir();
+
+            EnemyCards[1].Type = EActionType::Attack;
+            EnemyCards[1].Dir = EDir4::None;
+
+            EnemyCards[2].Type = EActionType::Defend;
+            EnemyCards[2].Dir = EDir4::None;
+        }
+    }
 
     // 덱으로 제작
     SetDeck();
@@ -372,6 +403,76 @@ EDir4 ACombatManager::CalcCh1MoveDir() const
         return (DY > 0) ? EDir4::Up : EDir4::Down;
 
     return EDir4::None;
+}
+
+EDir4 ACombatManager::CalcCh2MoveDir()
+{
+    const FPos Enemy = EnemyPos;
+    const FPos Player = PlayerPos;
+
+    auto DirToDelta = [](EDir4 Dir) -> FPos
+        {
+            switch (Dir)
+            {
+            case EDir4::Up:    return FPos(0, 1);
+            case EDir4::Down:  return FPos(0, -1);
+            case EDir4::Left:  return FPos(-1, 0);
+            case EDir4::Right: return FPos(1, 0);
+            default:           return FPos(0, 0);
+            }
+        };
+
+    auto IsInMap = [](const FPos& P) -> bool
+        {
+            return (P.X >= 0 && P.X <= 3 &&
+                P.Y >= 0 && P.Y <= 2);
+        };
+
+    auto Score = [&](const FPos& NewEnemy) -> TPair<int, int>
+        {
+            const int dx = Player.X - NewEnemy.X;
+            const int dy = Player.Y - NewEnemy.Y;
+
+            const int RowScore = FMath::Abs(dy);                 
+            const int DistScore = FMath::Abs(FMath::Abs(dx) - 1);
+            return { RowScore, DistScore };
+        };
+
+    // 이미 이상적인 위치면 이동 안 함
+    {
+        const int dx = Player.X - Enemy.X;
+        const int dy = Player.Y - Enemy.Y;
+        if (dy == 0 && FMath::Abs(dx) == 1)
+            return EDir4::None;
+    }
+
+    const EDir4 Candidates[4] = {
+        EDir4::Up, EDir4::Down, EDir4::Left, EDir4::Right
+    };
+
+    EDir4 BestDir = EDir4::None;
+    TPair<int, int> BestScore = Score(Enemy);
+
+    for (EDir4 Dir : Candidates)
+    {
+        const FPos NewPos = { Enemy.X + DirToDelta(Dir).X, Enemy.Y + DirToDelta(Dir).Y};
+
+        if (!IsInMap(NewPos))
+            continue;
+
+        const TPair<int, int> S = Score(NewPos);
+
+        const bool bBetter =
+            (S.Key < BestScore.Key) ||
+            (S.Key == BestScore.Key && S.Value < BestScore.Value);
+
+        if (bBetter)
+        {
+            BestScore = S;
+            BestDir = Dir;
+        }
+    }
+    return BestDir;
 }
 
 EDir4 ACombatManager::CalcTutorialAttackDir() const
@@ -442,25 +543,82 @@ void ACombatManager::TutorialAttack(bool IsPlayer, FActionCard& card)
     }
 }
 
-void ACombatManager::Chapter1Attack(bool IsPlayer, FActionCard& card) // todo: 여기 수정
+void ACombatManager::Chapter1Attack(bool IsPlayer, FActionCard& Card)
 {
-    switch (card.Dir)
-    {
-    case EDir4::Left:
-        // 왼쪽 1칸
-        AttackedPos.Add({ EnemyPos.X - 1, EnemyPos.Y });
-        if (EnemyPos.X - 1 == PlayerPos.X && EnemyPos.Y == PlayerPos.Y)
-            ApplyDamage(IsPlayer);
-        break;
+    // 상하좌우 1칸 전체 공격
+    static const FPos Offsets[] = {
+        { -1,  0 }, // Left
+        {  1,  0 }, // Right
+        {  0,  1 }, // Up
+        {  0, -1 }  // Down
+    };
 
-    case EDir4::Right:
-        AttackedPos.Add({ EnemyPos.X + 1, EnemyPos.Y });
-        if (EnemyPos.X + 1 == PlayerPos.X && EnemyPos.Y == PlayerPos.Y)
+    AttackedPos.Reset();
+
+    for (const FPos& Offset : Offsets)
+    {
+        const FPos TargetPos = EnemyPos + Offset;
+
+        // 맵 범위 체크 (0~3, 0~2)
+        if (TargetPos.X < 0 || TargetPos.X > 3 ||
+            TargetPos.Y < 0 || TargetPos.Y > 2)
+        {
+            continue;
+        }
+
+        // 공격 표시용 위치는 무조건 기록
+        AttackedPos.Add(TargetPos);
+
+        // 플레이어가 있으면 데미지
+        if (TargetPos == PlayerPos)
+        {
             ApplyDamage(IsPlayer);
-        break;
-    default:
-        break;
+        }
     }
+}
+
+
+void ACombatManager::Chapter2Attack(bool IsPlayer, FActionCard& card)
+{
+    const FPos Origin = EnemyPos;
+
+    AttackedPos.Reset();
+
+    for (const FPos& Offset : HOffsets3x3)
+    {
+        const FPos TargetPos = Origin + Offset;
+
+        // 맵 범위 체크
+        if (TargetPos.X < 0 || TargetPos.X > 3 ||
+            TargetPos.Y < 0 || TargetPos.Y > 2)
+        {
+            continue;
+        }
+
+        // 공격 표시용 위치는 무조건 기록
+        AttackedPos.Add(TargetPos);
+
+        // 플레이어가 해당 위치에 있으면 데미지 적용
+        if (TargetPos == PlayerPos)
+        {
+            ApplyDamage(IsPlayer);
+        }
+    }
+}
+
+bool ACombatManager::IsPlayerInAttackRange_Phase2() const
+{
+    const int dx = PlayerPos.X - EnemyPos.X;
+    const int dy = PlayerPos.Y - EnemyPos.Y;
+
+    const FPos Delta(dx, dy);
+
+    for (const FPos& Offset : HOffsets3x3)
+    {
+        if (Delta == Offset)
+            return true;
+    }
+    return false;
 }
 
 void ACombatManager::Setup(ASpine_EntityBase* Player, AEnemy* Enemy)
@@ -482,5 +640,10 @@ void ACombatManager::ResetTurn()
     EnemyCards.SetNum(3);
     CurCardNum = 0; // 등록한 카드 개수
     CurDeckIdx = 0; // 발동할 것
+    if (EnemyPawn != nullptr && PlayerPawn != nullptr)
+    {
+        EnemyPawn->Stat.DEF = false;
+        PlayerPawn->Stat.DEF = false;
+    }
     OnPhaseChanged.Broadcast(Phase);
 }

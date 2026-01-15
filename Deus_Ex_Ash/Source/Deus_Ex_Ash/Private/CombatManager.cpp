@@ -80,8 +80,10 @@ void ACombatManager::ApplyDamage(bool IsPlayer)
             OnPhaseChanged.Broadcast(ECombatPhase::Victory);
     }
 
-    OnHPChanged.Broadcast(true, PlayerPawn->Stat.MaxHP, PlayerPawn->Stat.HP);
-    OnHPChanged.Broadcast(false, EnemyPawn->Stat.MaxHP, EnemyPawn->Stat.HP);
+    if (false == IsPlayer)
+        OnHPChanged.Broadcast(true, PlayerPawn->Stat.MaxHP, PlayerPawn->Stat.HP);
+    else 
+        OnHPChanged.Broadcast(false, EnemyPawn->Stat.MaxHP, EnemyPawn->Stat.HP);
 }
 
 void ACombatManager::SetDeck() // 플레이어 - 적 사이의 카드들 보고 순서 하나로 합치는 것
@@ -139,6 +141,11 @@ void ACombatManager::ActiveAction()
         return;
     }
 
+    if (CurDeckIdx == 0 || CurDeckIdx % 2 == 0)
+    {
+        EnemyPawn->Stat.DEF = false;
+        PlayerPawn->Stat.DEF = false;
+    }
     IsHitGuard = false;
     AttackedPos.Empty();
     OnAttackedPos.Broadcast(AttackedPos);

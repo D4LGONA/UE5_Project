@@ -74,7 +74,7 @@ void AProjectileBase::OnHit(AActor* HitActor, AActor* ProjectileActor, float Dam
 			if (CurrentHealth < TempHealth && !FMath::IsNearlyEqual(CurrentHealth, TempHealth, 1.0E-4F))
 			{
 				// 체력 추가
-				AWeaponBase* EquippedWeaponBase = Cast<AWeaponBase>(OwnerCharacterBase->EquippedWeapon);
+				AWeaponBase* EquippedWeaponBase = Cast<AWeaponBase>(OwnerCharacterBase->EquippedWeapon_L);
 				float HealthAddAmount = FMath::Clamp(TempHealth - CurrentHealth, 0.0f, EquippedWeaponBase->GuardRegainHealAmount);
 				FAbilitySystemUtility::Get().ApplyGameplayEffect(OwnerCharacterBase->AbilitySystemComponent, OwnerCharacterBase->AbilitySystemComponent, OwnerCharacterBase->GE_Health, 0.0f, FAbilitySystemUtility::StatHealthDataTag, HealthAddAmount);
 			}

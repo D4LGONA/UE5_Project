@@ -17,7 +17,7 @@ void UExeCalc_Stamina_Sprint::Execute_Implementation(const FGameplayEffectCustom
 	AActor* TargetActor = TargetASC ? TargetASC->GetOwner() : nullptr;
 
 	ACharacterBase* TargetCharacterBase = Cast<ACharacterBase>(TargetActor);
-	AWeaponBase* TargetWeaponBase = Cast<AWeaponBase>(TargetCharacterBase->EquippedWeapon);
+	AWeaponBase* TargetWeaponBase = Cast<AWeaponBase>(TargetCharacterBase->EquippedWeapon_L);
 
 	float BaseStamina = Spec.GetModifierMagnitude(0, false);
 	float FinalStamina = 0.0f;

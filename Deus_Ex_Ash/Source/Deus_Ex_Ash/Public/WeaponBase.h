@@ -42,6 +42,13 @@ public:
 	class UCapsuleComponent* CapsuleComponent;
 
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	USceneComponent* HandleComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FTransform Handle_InitalRelativeTransform;
+
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AbilitySystem")
 	UAbilitySystemComponent* AbilitySystemComponent;
 
@@ -64,7 +71,7 @@ public:
 
 	UPROPERTY(BlueprintReadWrite)
 	int32 ComboIndex;
-
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	bool bIsBroken;
 
@@ -74,6 +81,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void OnAttackHit(AActor* HitActor, float Damage, float DurabilityAddAmount, float HitDuration, float StaggerDuration, bool IgnoreGuard);
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	void OnTraceBeginOverlap(AActor* HitActor);
 
 private:
 	TSet<AActor*> HitActors;

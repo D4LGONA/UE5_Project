@@ -114,7 +114,10 @@ public:
 	ECharacterType CharacterType;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite);
-	AActor* EquippedWeapon;
+	AActor* EquippedWeapon_L;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite);
+	AActor* EquippedWeapon_R;
 
 
 	void ApplyDamage(AActor* AttackerCharacter, AActor* Projectile, float Damage, float HitDuration, float StaggerDuration, bool IgnoreGuard);

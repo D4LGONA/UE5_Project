@@ -21,7 +21,8 @@ ACharacterBase::ACharacterBase()
 
 	CharacterType = ECharacterType::None;
 
-	EquippedWeapon = nullptr;
+	EquippedWeapon_L = nullptr;
+	EquippedWeapon_R = nullptr;
 
 	MinStaminaRequired = 5.0f;
 
@@ -73,9 +74,9 @@ void ACharacterBase::ApplyDamage(AActor* AttackerCharacter, AActor* Projectile, 
 		return;
 	}
 
-	AWeaponBase* EquippedWeaponBase = Cast<AWeaponBase>(EquippedWeapon);
+	AWeaponBase* EquippedWeaponBase = Cast<AWeaponBase>(EquippedWeapon_L);
 	ACharacterBase*	AttackerCharacterBase = Cast<ACharacterBase>(AttackerCharacter);
-	AWeaponBase* AttackerWeaponBase	= Cast<AWeaponBase>(AttackerCharacterBase->EquippedWeapon);
+	AWeaponBase* AttackerWeaponBase	= Cast<AWeaponBase>(AttackerCharacterBase->EquippedWeapon_L);
 	
 	if (EquippedWeaponBase && AttackerCharacterBase && AttackerWeaponBase)
 	{

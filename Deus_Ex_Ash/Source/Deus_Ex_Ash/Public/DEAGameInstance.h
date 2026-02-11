@@ -43,8 +43,8 @@ public:
 		{ ELevelNameEnum::Chapter1, FName("Map1") },
 		{ ELevelNameEnum::Chapter2, FName("Map2") },
 		{ ELevelNameEnum::Chapter2_5, FName("Chapter2_5") },
-		{ ELevelNameEnum::Chapter3, FName("Chapter3") },
-		{ ELevelNameEnum::Chapter4, FName("MAP_4") }
+		{ ELevelNameEnum::Chapter3, FName("Map3") },
+		{ ELevelNameEnum::Chapter4, FName("Chapter4") }
 	};
 
 	UFUNCTION(BlueprintCallable)

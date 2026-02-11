@@ -31,7 +31,7 @@ void UDEAGameInstance::Init()
 		FRotator(0.0f, 170.0f, 0.0f)
 	};
 
-	FBonfireInfo Bonfire_Chapter4
+	FBonfireInfo Bonfire_Chapter3
 	{
 		FVector(3772.0f, -3912.0f, 505.5f),
 		FRotator(0.0f, -90.0f, 0.0f)
@@ -40,7 +40,7 @@ void UDEAGameInstance::Init()
 	BonfireInfoByLevelName.Add(GetLevelName(ELevelNameEnum::Tutorial), Bonfire_Tutorial);
 	BonfireInfoByLevelName.Add(GetLevelName(ELevelNameEnum::Chapter1), Bonfire_Chapter1);
 	BonfireInfoByLevelName.Add(GetLevelName(ELevelNameEnum::Chapter2), Bonfire_Chapter2);
-	BonfireInfoByLevelName.Add(GetLevelName(ELevelNameEnum::Chapter4), Bonfire_Chapter4);
+	BonfireInfoByLevelName.Add(GetLevelName(ELevelNameEnum::Chapter3), Bonfire_Chapter3);
 }
 
 void UDEAGameInstance::Shutdown()
